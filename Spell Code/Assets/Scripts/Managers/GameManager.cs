@@ -4858,7 +4858,8 @@ public class GameManager : MonoBehaviour
         // Bots pick their own control options rather than answering the prompt
         // Synthesizer (vibeCoding false) is the neutral mode: full multi-direction
         // codes, standard cooldowns, no extra spell-slot cap. Punk is the difficulty lever
-        SetBotCodeMode(bot, punkMode: false);
+        BotTuning tuning = BotTuning.For(difficulty);
+        SetBotCodeMode(bot, tuning.PunkMode);
         bot.relativeInputs = false;
 
         int newPlayerIndex = playerCount;
@@ -4887,6 +4888,7 @@ public class GameManager : MonoBehaviour
         // which are prefab instances held in an AIMachine's list
         ChaseAI botBehavior = bot.gameObject.AddComponent<ChaseAI>();
         botBehavior.owner = bot;
+        botBehavior.reactionFrames = tuning.ReactionFrames;
         bot.npcAI = botBehavior;
 
         // Initialise now rather than waiting for the bot's own Start(), which is the same thing the

@@ -688,6 +688,10 @@ public abstract class NpcAI : MonoBehaviour
     /// authoring, because spellInput already carries the whole sequence: bits 0-3 hold the length,
     /// and each pair from bit 8 up is one direction.
     /// </summary>
+    /// <summary>How this bot's difficulty tier wants it to play. See BotTuning.</summary>
+    protected BotTuning Tuning =>
+        BotTuning.For(owner != null ? owner.botDifficulty : BotDifficulty.Medium);
+
     protected bool BeginCast(SpellData spell)
     {
         if (spell == null || spell.spellType != SpellType.Active || spell.cooldownCounter > 0)
@@ -695,7 +699,43 @@ public abstract class NpcAI : MonoBehaviour
             return false;
         }
 
-        return BeginCast(spell.spellInput);
+        uint code = spell.spellInput;
+
+        // Punk rewrites code entry completely: every direction writes to slot 0 and the length
+        // stops at one, so entering the real sequence would collapse into whichever direction
+        // happened to land last -- the wrong spell, or none. Under Punk a spell is cast by the one
+        // direction matching its place in the list, and only the first four places are reachable.
+        if (owner != null && owner.vibeCoding)
+        {
+            int slot = owner.spellList != null ? owner.spellList.IndexOf(spell) : -1;
+            if (slot < 0 || slot > 3)
+            {
+                return false;
+            }
+
+            code = PunkCodeForSlot(slot);
+        }
+
+        return BeginCast(code);
+    }
+
+    /// <summary>
+    /// The single-direction code Punk uses for a spell-list slot, matching the shortcuts
+    /// CheckSpellCodeInput matches against: up, right, down, left for slots 0-3.
+    /// </summary>
+    private static uint PunkCodeForSlot(int slot)
+    {
+        uint directionBits;
+        switch (slot)
+        {
+            case 0: directionBits = 0b11; break;  // up
+            case 1: directionBits = 0b01; break;  // right
+            case 2: directionBits = 0b00; break;  // down
+            default: directionBits = 0b10; break; // left
+        }
+
+        // One direction at slot 0, length 1.
+        return (directionBits << 8) | 1u;
     }
 
     /// <summary>A bare Code press and release, with no directions entered.</summary>

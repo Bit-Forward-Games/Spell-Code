@@ -348,8 +348,9 @@ public class ChaseAI : NpcAI
     private bool TryAttack()
     {
         // Only from a settled position on the ground: entering a code roots the owner in place, so
-        // starting one mid-scramble is how a bot gets punished.
-        if (!IsGrounded || framesSinceAttempt < FramesBetweenAttempts)
+        // starting one mid-scramble is how a bot gets punished. How eagerly it comes back for
+        // another go is a difficulty knob.
+        if (!IsGrounded || framesSinceAttempt < Tuning.FramesBetweenAttempts)
         {
             return false;
         }
@@ -368,7 +369,8 @@ public class ChaseAI : NpcAI
             return false;
         }
 
-        SpellData spell = ChooseSpell();
+        // A low tier reaches for whatever is ready instead of what the situation wants.
+        SpellData spell = Tuning.PicksBestSpell ? ChooseSpell() : AnyReadySpell();
         if (spell != null && HasRoomFor(spell) && BeginCast(spell))
         {
             framesSinceAttempt = 0;
@@ -394,6 +396,10 @@ public class ChaseAI : NpcAI
     {
         int length = PlayerController.GetSpellInputLength(spell);
         float required = MinCastSpace + (length * SpacePerCodeStep);
+
+        // Discipline is the clearest difficulty knob there is: a reckless tier starts long codes at
+        // ranges it will be punished for, which is exactly what makes it beatable.
+        required *= Tuning.CommitmentSpaceScale;
 
         // On the last stock a trade is a loss, so demand more room before committing to anything.
         if (IsOnLastStock())

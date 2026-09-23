@@ -33,18 +33,27 @@ public static class SimGuards
     /// <summary>
     /// True when <paramref name="playerSlot"/> belongs to a player at this keyboard.
     ///
-    /// Offline this is true for every slot: local play is one machine on one account, and
+    /// Offline this is true for every human slot: local play is one machine on one account, and
     /// localPlayerIndex sits at its default of 0 there, so filtering by it would deny
-    /// P2 through P4.
+    /// P2 through P4. A bot's slot is the exception -- nobody is behind it, so what it picks up
+    /// must not unlock anything for the player who added it.
     /// </summary>
     public static bool IsLocalSlot(int playerSlot)
     {
         GameManager manager = GameManager.Instance;
 
         // A null manager means no match context at all, which behaves like offline.
-        if (manager == null || !manager.isOnlineMatchActive)
+        if (manager == null)
         {
             return true;
+        }
+
+        if (!manager.isOnlineMatchActive)
+        {
+            PlayerController player = playerSlot >= 0 && playerSlot < manager.players.Length
+                ? manager.players[playerSlot]
+                : null;
+            return player == null || !player.isBot;
         }
 
         return playerSlot == manager.localPlayerIndex;

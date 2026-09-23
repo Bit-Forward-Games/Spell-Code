@@ -14,6 +14,7 @@
     <Compile Include="../../Spell Code/Assets/SO/StageDataSO.cs" Link="StageDataSO.cs" />
     <Compile Include="../../Spell Code/Assets/Scripts/PlayerScripts/NPCScripts/BotPlatformNavigator.cs" Link="BotPlatformNavigator.cs" />
     <Compile Include="../../Spell Code/Assets/Scripts/PlayerScripts/NPCScripts/NpcAI.cs" Link="NpcAI.cs" />
+    <Compile Include="../../Spell Code/Assets/Scripts/PlayerScripts/NPCScripts/BotTuning.cs" Link="BotTuning.cs" />
     <None Include="../../Spell Code/Assets/SO/Arena SOs/Lobby and Tutorials/Lobby_Arena StageDataSO.asset" Link="Lobby_Arena StageDataSO.asset" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>

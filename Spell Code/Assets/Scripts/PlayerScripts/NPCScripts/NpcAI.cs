@@ -611,6 +611,54 @@ public abstract class NpcAI : MonoBehaviour
         return cachedFloppy;
     }
 
+    private FloppyPickup_Character cachedCharacterDisk;
+    private int framesUntilCharacterDiskScan;
+
+    /// <summary>
+    /// The nearer of this bot's Showdown character disks, or null. Showdown deals whole characters on
+    /// FloppyPickup_Character, a different component from FloppyPickup under the same tag, so
+    /// BestOwnFloppy never sees them -- and a Showdown bot without this knocks its Gamba forever and
+    /// never holds a spell to open its gate with. Same interval scan and null re-check as
+    /// BestOwnFloppy; the two characters on offer are whole kits, so there is nothing to score.
+    /// </summary>
+    protected FloppyPickup_Character OwnCharacterDisk()
+    {
+        if (owner == null)
+        {
+            return null;
+        }
+
+        if (framesUntilCharacterDiskScan > 0)
+        {
+            framesUntilCharacterDiskScan--;
+            return cachedCharacterDisk != null ? cachedCharacterDisk : null;
+        }
+
+        framesUntilCharacterDiskScan = FloppyScanInterval;
+        cachedCharacterDisk = null;
+
+        FloppyPickup_Character[] disks = FindObjectsByType<FloppyPickup_Character>(FindObjectsSortMode.None);
+        float nearestDistance = float.MaxValue;
+
+        for (int i = 0; i < disks.Length; i++)
+        {
+            FloppyPickup_Character disk = disks[i];
+            if (disk == null || disk.ownerPID != owner.pID)
+            {
+                continue;
+            }
+
+            float distance = Mathf.Abs(disk.transform.position.x - owner.position.X.ToFloat());
+            if (distance < nearestDistance)
+            {
+                nearestDistance = distance;
+                cachedCharacterDisk = disk;
+            }
+        }
+
+        return cachedCharacterDisk;
+    }
+
     /// <summary>
     /// How much a disk is worth to this bot. Favours range bands the kit is thin on, so a bot ends
     /// up with an answer at more than one distance instead of four versions of the same poke.

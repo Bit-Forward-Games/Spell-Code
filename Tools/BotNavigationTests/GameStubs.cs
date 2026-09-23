@@ -22,6 +22,7 @@ public sealed class InputSnapshot
     public InputSnapshot(int direction, ButtonState[] buttons) { Direction = direction; ButtonStates = buttons; }
 }
 public enum PlayerState { Idle, Run, Jump, Fall, Hitstun, Tech, Slide }
+public enum BotDifficulty { Easy, Medium, Hard }
 public sealed class PlayerController
 {
     public FixedPosition position;
@@ -34,6 +35,8 @@ public sealed class PlayerController
     public PlayerState state = PlayerState.Idle;
     public int jumpCount = 2, pID;
     public List<SpellData> spellList = new();
+    public BotDifficulty botDifficulty = BotDifficulty.Medium;
+    public bool vibeCoding;
     public static int GetSpellInputLength(SpellData spell) => (int)(spell.spellInput & 15);
 }
 public sealed class GameManager
@@ -49,6 +52,7 @@ public sealed class GameManager
 public sealed class SpellCode_Gate { public int ownerPID; }
 public sealed class GambaMachine { }
 public sealed class FloppyPickup : MonoBehaviour { public int ownerPID; public string diskName; }
+public sealed class FloppyPickup_Character : MonoBehaviour { public int ownerPID; }
 public enum SpellType { Active, Passive }
 public enum SpellRole { Attack, Utility, Zone, Enhance }
 public enum SpellRange { Short, Medium, Long }

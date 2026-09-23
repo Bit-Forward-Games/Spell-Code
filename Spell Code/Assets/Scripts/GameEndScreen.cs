@@ -598,6 +598,16 @@ public class GameEndScreen : MonoBehaviour
             selectedOptions[slot] = RematchOption;
             confirmedOptions[slot] = false;
             optionRevisions[slot] = 0;
+
+            // A bot is a connected slot, so TryResolveSelections waits on it, but it never presses
+            // anything -- confirmations are read off device actions. Confirm it as Rematch up front
+            // so the humans decide: unanimous Rematch keeps the bots, any Main Menu drops everyone.
+            // Offline only by construction; bots never exist in an online match.
+            PlayerController player = GameManager.Instance != null ? GameManager.Instance.players[slot] : null;
+            if (!useOnlineEndFlow && player != null && player.isBot)
+            {
+                confirmedOptions[slot] = true;
+            }
         }
 
         rematchButton.gameObject.SetActive(true);

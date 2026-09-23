@@ -218,7 +218,19 @@ public class ChaseAI : NpcAI
         FloppyPickup floppy = BestOwnFloppy();
         if (floppy != null)
         {
-            CollectFloppy(floppy);
+            CollectFloppy(floppy.transform.position, floppy.colliderRadius, owner.collidingWithFloppy);
+            return true;
+        }
+
+        // Showdown's character disks. collidingWithFloppy is only ever set by spell disks, so ask the
+        // disk itself whether this bot is the one standing on it. On a character disk the press also
+        // opens CodeWeave (Idle only holds that back for spell disks), and the release still collects
+        // -- the same thing that happens to a human picking one up.
+        FloppyPickup_Character characterDisk = OwnCharacterDisk();
+        if (characterDisk != null)
+        {
+            CollectFloppy(characterDisk.transform.position, characterDisk.colliderRadius,
+                characterDisk.colliding && characterDisk.overlappingPlayer == owner);
             return true;
         }
 
@@ -258,13 +270,13 @@ public class ChaseAI : NpcAI
     /// Walks onto a floppy and taps Code to take it. The pickup radius is 18, so this has to stand
     /// much closer than the door does.
     /// </summary>
-    private void CollectFloppy(FloppyPickup floppy)
+    private void CollectFloppy(Vector2 target, float pickupRadius, bool standingOnDisk)
     {
-        Vector2 target = floppy.transform.position;
         Vector2 position = new Vector2(owner.position.X.ToFloat(), owner.position.Y.ToFloat());
-        // collidingWithFloppy may describe a different disk. Only stop for the selected pickup.
-        if (!owner.collidingWithFloppy
-            || (target - position).sqrMagnitude > floppy.colliderRadius * floppy.colliderRadius)
+        // standingOnDisk may describe a different disk (collidingWithFloppy is true on any of this
+        // bot's spell disks). Only stop for the selected pickup.
+        if (!standingOnDisk
+            || (target - position).sqrMagnitude > pickupRadius * pickupRadius)
         {
             TravelToward(target, FloppyReachRadius, FloppyReachRadius);
             return;

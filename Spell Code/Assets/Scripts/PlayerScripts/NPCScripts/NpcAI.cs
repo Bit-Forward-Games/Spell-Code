@@ -46,6 +46,10 @@ public abstract class NpcAI : MonoBehaviour
     private int navigationFrames;
     private int navigationJumpsRemaining;
 
+    // How far from a planned jump takeoff the bot may stop and still re-check the jump from where it
+    // stands. Comfortably wider than the ~5px it can overshoot by, but still local to the plan.
+    private const float JumpTakeoffSlack = 12f;
+
     private bool droppingThroughPlatform;
     private StageDataSO dropStage;
     private float dropSurfaceY;
@@ -427,6 +431,21 @@ public abstract class NpcAI : MonoBehaviour
         if (!navigationAirborne)
         {
             float takeoffTolerance = navigationStep.kind == BotPlatformNavigator.Kind.Drop ? 5f : 1f;
+
+            // From rest the smallest move the owner can make is ~5px (a unit of speed every two run
+            // frames, then braking a unit every four), so it can overshoot a 1px jump window from
+            // either side forever -- that left a bot shuffling under its Shop disk and never jumping.
+            // Whenever it stops near the takeoff, ask the planner whether the same jump still lands
+            // from right here, and take it from here if so.
+            if (navigationStep.kind == BotPlatformNavigator.Kind.Jump
+                && Mathf.Abs(position.x - navigationStep.takeoff.x) > takeoffTolerance
+                && Mathf.Abs(position.x - navigationStep.takeoff.x) <= JumpTakeoffSlack
+                && IsGrounded && Mathf.Abs(owner.hSpd.ToFloat()) < 0.1f
+                && platformNavigator.TryJumpFrom(navigationStep, position.x, out BotPlatformNavigator.Step fromHere))
+            {
+                navigationStep = fromHere;
+            }
+
             if (Mathf.Abs(position.x - navigationStep.takeoff.x) > takeoffTolerance)
             {
                 // The planner has checked this approach. In particular, a planned fall MUST be

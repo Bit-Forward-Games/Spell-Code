@@ -24,6 +24,7 @@ internal static class Program
         Run("jump press is held through ascent and released at apex", JumpHold);
         Run("drop input continues until feet clear the platform", DropHold);
         Run("drop first stops a running bot to avoid a slide", StopBeforeDrop);
+        Run("NPC reaches every lobby/shop disk from anywhere in its room", LobbyDiskApproach);
         Console.WriteLine(failed == 0 ? "All navigation regressions passed." : $"{failed} regression(s) failed.");
         return failed == 0 ? 0 : 1;
     }
@@ -258,7 +259,7 @@ internal static class Program
         }
         throw new InvalidOperationException("Did not arrive within 900 simulation ticks: " + string.Join("; ", history));
     }
-    private static void ActualLobbyRoutes()
+    private static StageDataSO LobbyStage()
     {
         string yaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Lobby_Arena StageDataSO.asset"));
         Vector2[] ReadVectors(string name)
@@ -273,6 +274,31 @@ internal static class Program
             platformCenter = ReadVectors("platformCenter"), platformExtent = ReadVectors("platformExtent"),
             borderMin = new Vector3(-350, -205, 0), borderMax = new Vector3(350, 205, 0) };
         Check(stage.solidCenter.Length == 14 && stage.platformCenter.Length == 4, "Active lobby geometry fixture failed to load.");
+        return stage;
+    }
+
+    // The Shop reuses the lobby map. These are P4's three disk spots (GambaMachine.diskLocations 9-11)
+    // with real character stats. From rest the bot's smallest move is ~5px, so the old 1px jump
+    // takeoff window left it shuffling underneath its disk from about one start in nine.
+    private static void LobbyDiskApproach()
+    {
+        var stage = LobbyStage();
+        foreach (float diskX in new[] { 79f, 143f, 207f })
+        {
+            for (float x = 80f; x <= 240f; x += 5f)
+            {
+                try { Simulate(stage, new Vector2(x, -192f), new Vector2(diskX, -112f), false, 24, 3); }
+                catch (InvalidOperationException error)
+                {
+                    throw new InvalidOperationException($"From ({x}, -192) to disk x={diskX}: {error.Message}");
+                }
+            }
+        }
+    }
+
+    private static void ActualLobbyRoutes()
+    {
+        var stage = LobbyStage();
         var navigator = new BotPlatformNavigator();
         var missingRoutes = new List<string>();
         // Each lobby room's floor/pickup platform pair is a real bot destination.

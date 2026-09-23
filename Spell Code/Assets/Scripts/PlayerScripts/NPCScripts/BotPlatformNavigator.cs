@@ -18,6 +18,8 @@ public sealed class BotPlatformNavigator
         public float destinationLeft, destinationRight;
         public bool destinationOneWay;
         public int jumpsRequired;
+        // Surface indices into the cached graph, so a jump can be re-checked from another takeoff.
+        public int fromSurface, toSurface;
     }
 
     private struct Box
@@ -82,7 +84,7 @@ public sealed class BotPlatformNavigator
         if (start == goal)
         {
             step = MakeStep(Kind.Walk, position, new Vector2(
-                Mathf.Clamp(target.x, surfaces[goal].left, surfaces[goal].right), surfaces[goal].y), goal, 0);
+                Mathf.Clamp(target.x, surfaces[goal].left, surfaces[goal].right), surfaces[goal].y), start, goal, 0);
             return true;
         }
 
@@ -223,7 +225,7 @@ public sealed class BotPlatformNavigator
             float end = Mathf.Clamp(x, b.left, b.right);
             if (CanWalk(x, end, a.y))
             {
-                step = MakeStep(Kind.Walk, new Vector2(x, a.y), new Vector2(end, b.y), to, 0);
+                step = MakeStep(Kind.Walk, new Vector2(x, a.y), new Vector2(end, b.y), from, to, 0);
                 duration = Mathf.Abs(end - x) / runSpeed;
                 return true;
             }
@@ -316,7 +318,7 @@ public sealed class BotPlatformNavigator
                 if (landed >= 0)
                 {
                     if (landed != to || remaining > 0) return false;
-                    step = MakeStep(kind, new Vector2(startX, a.y), new Vector2(landingX, b.y), to, jumps);
+                    step = MakeStep(kind, new Vector2(startX, a.y), new Vector2(landingX, b.y), from, to, jumps);
                     duration = tick + 1;
                     return true;
                 }
@@ -351,12 +353,30 @@ public sealed class BotPlatformNavigator
         return false;
     }
 
-    private Step MakeStep(Kind kind, Vector2 takeoff, Vector2 landing, int to, int jumps)
+    private Step MakeStep(Kind kind, Vector2 takeoff, Vector2 landing, int from, int to, int jumps)
     {
         Surface s = surfaces[to];
         return new Step { kind = kind, takeoff = takeoff, landing = landing,
             destinationLeft = s.physicalLeft, destinationRight = s.physicalRight,
-            destinationOneWay = s.oneWay, jumpsRequired = jumps };
+            destinationOneWay = s.oneWay, jumpsRequired = jumps, fromSurface = from, toSurface = to };
+    }
+
+    /// <summary>
+    /// Re-runs a planned jump's arc from startX instead of its planned takeoff, and returns the step
+    /// rebuilt from there when it still lands on the same surface. A bot can't always stop exactly on
+    /// a takeoff: from rest its smallest move is several pixels, so it can overshoot a 1px window
+    /// forever. Only valid against the graph the step was planned on, i.e. before the next
+    /// TryGetNextStep call can rebuild it.
+    /// </summary>
+    public bool TryJumpFrom(Step planned, float startX, out Step fromHere)
+    {
+        fromHere = planned;
+        if (planned.kind != Kind.Jump
+            || planned.fromSurface < 0 || planned.fromSurface >= surfaces.Count
+            || planned.toSurface < 0 || planned.toSurface >= surfaces.Count)
+            return false;
+        return TryArc(planned.fromSurface, planned.toSurface, Kind.Jump, startX, planned.jumpsRequired,
+            out fromHere, out _);
     }
 
     private static int PairCount(Vector2[] centers, Vector2[] extents)

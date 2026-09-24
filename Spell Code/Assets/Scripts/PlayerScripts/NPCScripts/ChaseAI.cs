@@ -174,20 +174,30 @@ public class ChaseAI : NpcAI
         }
 
         int desired = ChooseDirection();
-
-        // Holding neutral never turns the owner, so a bot sitting in the band facing the wrong way
-        // would stay that way forever -- and TryAttack refuses to cast unless it's facing the
-        // target. Face them instead; the state machine turns before it accelerates.
-        if (desired == 5 && !FacingTarget)
-        {
-            desired = TargetOffsetX > 0f ? 6 : 4;
-        }
+        int away = TargetOffsetX > 0f ? 4 : 6;
 
         // Ledge safety applies only on the ground. Airborne, the same step is how the bot gets back
         // to the stage, so refusing it there would strand anything that ever leaves the floor.
         if (IsGrounded && desired != 5 && !IsStepSafe(desired))
         {
             desired = 5;
+        }
+
+        // A retreat also ends at a wall: pressing on only grinds into it, or hops against it, with
+        // the bot's back to its target.
+        if (desired == away && WallAhead(away))
+        {
+            desired = 5;
+        }
+
+        // Holding neutral never turns the owner, so a bot sitting in the band facing the wrong way
+        // would stay that way forever -- and TryAttack refuses to cast unless it's facing the
+        // target. Face them instead; the state machine turns before it accelerates. This comes after
+        // the ledge and wall checks on purpose: backing off turns the bot away, so a retreat they cut
+        // short would otherwise leave it cornered with its back to the target, unable to swing.
+        if (desired == 5 && !FacingTarget)
+        {
+            desired = TargetOffsetX > 0f ? 6 : 4;
         }
 
         SetDirection(desired);

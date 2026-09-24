@@ -283,6 +283,51 @@ public abstract class NpcAI : MonoBehaviour
     }
 
     /// <summary>
+    /// True when a solid stands within reach in this direction at body height -- a wall, as opposed
+    /// to a drop. Read off the stage AABBs rather than touchingLeftWall/touchingRightWall: those only
+    /// light up on a frame the owner is actively pushing into a wall, so a bot deciding whether to
+    /// keep stepping toward one would flip-flop between yes and no.
+    /// </summary>
+    protected bool WallAhead(int numpadDirection, float reach = 24f)
+    {
+        StageDataSO stage = Stage;
+        if (owner == null || stage == null || stage.solidCenter == null || stage.solidExtent == null
+            || numpadDirection % 3 == 2)
+        {
+            return false;
+        }
+
+        float sign = numpadDirection % 3 == 0 ? 1f : -1f;
+        float bodyEdge = owner.position.X.ToFloat() + sign * owner.playerWidth.ToFloat() * 0.5f;
+        float nearX = Mathf.Min(bodyEdge, bodyEdge + sign * reach);
+        float farX = Mathf.Max(bodyEdge, bodyEdge + sign * reach);
+        float feet = owner.position.Y.ToFloat();
+        float head = feet + owner.playerHeight.ToFloat();
+
+        int count = Mathf.Min(stage.solidCenter.Length, stage.solidExtent.Length);
+        for (int i = 0; i < count; i++)
+        {
+            Vector2 center = stage.solidCenter[i];
+            Vector2 extent = stage.solidExtent[i];
+            if (center.x + extent.x < nearX || center.x - extent.x > farX)
+            {
+                continue;
+            }
+
+            // Anything the body would run into: the floor under its feet doesn't count, a shin-high
+            // bump does, because the collision pass blocks those sideways rather than stepping up.
+            if (center.y + extent.y <= feet + 1f || center.y - extent.y >= head - 1f)
+            {
+                continue;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// True when there is somewhere to land further along in this direction, past whatever the next
     /// step falls into. This is what separates a gap worth jumping from the edge of the world.
     /// </summary>
@@ -1008,6 +1053,21 @@ public abstract class NpcAI : MonoBehaviour
     {
         SpellTactics.Profile profile = SpellTactics.For(spell);
 
+        // A buff isn't aimed at anyone, so its range band says nothing about when to cast it --
+        // scoring it by one zeroed every Enhance, since they're tagged Short (in band only inside
+        // 90) while this rule wants them from 115 out. What a buff costs is recovery with no damage,
+        // so it needs real space; given that, it scores a flat middling value that loses to any
+        // attack sitting well in its band and wins when nothing is.
+        if (profile.Role == SpellRole.Enhance)
+        {
+            if (distance < SpellTactics.IdealDistance(SpellRange.Medium))
+            {
+                return 0f;
+            }
+
+            return Mathf.Max(0.5f - PlayerController.GetSpellInputLength(spell) * 0.03f, 0f);
+        }
+
         float ideal = SpellTactics.IdealDistance(profile.Range);
         float tolerance = SpellTactics.BandTolerance(profile.Range);
         float missBy = Mathf.Abs(distance - ideal);
@@ -1030,15 +1090,6 @@ public abstract class NpcAI : MonoBehaviour
                     return 0f;
                 }
                 score *= 0.8f;
-                break;
-
-            case SpellRole.Enhance:
-                // A buff costs recovery and does no damage, so it needs real space to be worth it.
-                if (distance < SpellTactics.IdealDistance(SpellRange.Medium))
-                {
-                    return 0f;
-                }
-                score *= 0.9f;
                 break;
 
             case SpellRole.Utility:

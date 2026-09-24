@@ -27,6 +27,8 @@ internal static class Program
         Run("NPC reaches every lobby/shop disk from anywhere in its room", LobbyDiskApproach);
         Run("NPC held still by a screen transition doesn't jump on its first step", NoJumpAfterHeldInput);
         Run("NPC drops from anywhere on its disk platform down to its Gamba", LobbyGambaDescent);
+        Run("Enhance spells are cast with room, never up close, and lose to an attack in band", EnhanceSpellChoice);
+        Run("a bot backed into a ledge or wall turns to face its opponent", CorneredBotFacesTarget);
         Console.WriteLine(failed == 0 ? "All navigation regressions passed." : $"{failed} regression(s) failed.");
         return failed == 0 ? 0 : 1;
     }
@@ -298,6 +300,64 @@ internal static class Program
         }
     }
 
+    // Enhance spells are tagged Short in SpellTactics, so scoring them by range band like an attack
+    // zeroed every one of them: in band only inside 90, while the Enhance rule wants 115+. Medium and
+    // Hard bots picked them up and never cast them.
+    private static void EnhanceSpellChoice()
+    {
+        SpellData cashOut = new SpellData { spellName = "Cash Out", spellType = SpellType.Active, spellInput = 3 };
+        SpellData asuranBlades = new SpellData { spellName = "Asuran Blades", spellType = SpellType.Active, spellInput = 3 };
+
+        SpellData ChooseAt(float distance, params SpellData[] held)
+        {
+            var bot = new PlayerController { position = new FixedPosition(0, 0), isGrounded = true, pID = 1 };
+            var target = new PlayerController { position = new FixedPosition(distance, 0), isGrounded = true, pID = 2 };
+            bot.spellList.AddRange(held);
+            GameManager.Instance = new GameManager { players = new[] { bot, target }, playerCount = 2 };
+            var npc = new ProbeNpc { owner = bot };
+            npc.Tick(); // perception
+            return npc.Choose();
+        }
+
+        Check(ChooseAt(150f, cashOut) == cashOut, "A lone Enhance spell was never chosen, even with room to cast it.");
+        Check(ChooseAt(60f, cashOut) == null, "An Enhance spell was chosen up close, where its recovery gets punished.");
+        Check(ChooseAt(120f, cashOut, asuranBlades) == asuranBlades, "An Enhance spell beat an attack sitting in its band.");
+    }
+
+    // Backing off turns a bot away from its target. When a ledge or wall then cut the retreat short,
+    // the turn-to-face fix-up had already run, so the bot stood cornered with its back to them --
+    // and TryAttack refuses to swing unless it's facing its target.
+    private static void CorneredBotFacesTarget()
+    {
+        var ledge = Stage(new[] { (-200f, 400f, 0f, 20f) }, Array.Empty<(float,float,float,float)>());
+        var wall = Stage(new[] { (-400f, 400f, 0f, 20f), (-260f, -200f, 200f, 200f) }, Array.Empty<(float,float,float,float)>());
+
+        foreach (var (name, stage) in new[] { ("ledge", ledge), ("wall", wall) })
+        {
+            var bot = new PlayerController { position = new FixedPosition(-150f, 0f), isGrounded = true, facingRight = true,
+                playerWidth = 24, runSpeed = 3, pID = 1 };
+            var target = new PlayerController { position = new FixedPosition(-110f, 0f), isGrounded = true, pID = 2 };
+            GameManager.Instance = new GameManager { stage = stage, players = new[] { bot, target }, playerCount = 2 };
+            var chase = new ChaseAI { owner = bot };
+            var simulation = new MovementSimulation(bot, stage);
+            float furthestBack = -150f;
+
+            for (int tick = 0; tick < 300; tick++)
+            {
+                // An opponent pressing in: always close enough that the bot wants to back off.
+                target.position = new FixedPosition(bot.position.X.ToFloat() + 30f, 0f);
+                chase.Tick();
+                simulation.Step(chase.npcInputSnapshot);
+                furthestBack = MathF.Min(furthestBack, bot.position.X.ToFloat());
+                Check(bot.position.Y.ToFloat() > -10f, $"Backed off the {name} and fell.");
+            }
+
+            Check(furthestBack < -155f, $"Never backed up to the {name}; the scenario didn't happen (furthest {furthestBack:0}).");
+            Check(bot.facingRight, $"Cornered at the {name} with its back to the target (x={bot.position.X.ToFloat():0}).");
+            Check(bot.position.X.ToFloat() < -150f, $"Wandered away from the {name} instead of standing its ground (x={bot.position.X.ToFloat():0}).");
+        }
+    }
+
     // The Gamba only takes a hit at its own height, so a bot on the disk platform above it has to
     // drop through first. The drop needs the bot at rest near its takeoff, and like the jump it
     // used to overshoot that window from either side forever from about one start in nine.
@@ -374,6 +434,7 @@ internal static class Program
         public void Stand() => Neutral();
         public void Travel(Vector2 goal) => TravelToward(goal);
         public void TravelX(float x) => TravelTowardX(x);
+        public SpellData Choose() => ChooseSpell();
         public void Drop(float targetY) { if (!TryDropToward(targetY)) Neutral(); }
     }
 }

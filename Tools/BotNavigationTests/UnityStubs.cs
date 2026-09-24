@@ -37,6 +37,7 @@ public struct Vector3
 {
     public float x, y, z;
     public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
+    public static implicit operator Vector2(Vector3 v) => new(v.x, v.y);
     public static bool operator ==(Vector3 a, Vector3 b) => a.x == b.x && a.y == b.y && a.z == b.z;
     public static bool operator !=(Vector3 a, Vector3 b) => !(a == b);
     public override bool Equals(object obj) => obj is Vector3 other && this == other;

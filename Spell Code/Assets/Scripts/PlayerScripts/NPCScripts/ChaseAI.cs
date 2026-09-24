@@ -45,6 +45,10 @@ public class ChaseAI : NpcAI
     // A floppy only registers an overlapping player within 18 units, so stand well inside that.
     private const float FloppyReachRadius = 12f;
 
+    // How far above or below the Gamba's base still counts as its level. Half a body: the disk
+    // platform sits a full 80 above it, while the Gamba's own floor is within a couple of units.
+    private const float GambaHeightTolerance = 24f;
+
     private int framesSinceAttempt;
 
     // How hard a fat bounty pulls a RAM Rush bot off the nearest opponent, per point of bounty
@@ -240,6 +244,16 @@ public class ChaseAI : NpcAI
         if (gamba == null || !gamba.isActive)
         {
             return false;
+        }
+
+        // The swing only connects at the Gamba's own height. From the disk platform above it the
+        // horizontal check below still reads "in range", and the bot whiffs over the top forever.
+        // Get down to its level first; TravelToward plans the drop.
+        Vector2 gambaPosition = gamba.transform.position;
+        if (Mathf.Abs(gambaPosition.y - owner.position.Y.ToFloat()) > GambaHeightTolerance)
+        {
+            TravelToward(gambaPosition, GateCastDistance, GambaHeightTolerance);
+            return true;
         }
 
         float offset = gamba.transform.position.x - owner.position.X.ToFloat();

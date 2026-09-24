@@ -46,9 +46,9 @@ public abstract class NpcAI : MonoBehaviour
     private int navigationFrames;
     private int navigationJumpsRemaining;
 
-    // How far from a planned jump takeoff the bot may stop and still re-check the jump from where it
-    // stands. Comfortably wider than the ~5px it can overshoot by, but still local to the plan.
-    private const float JumpTakeoffSlack = 12f;
+    // How far from a planned jump or drop takeoff the bot may stop and still re-check the move from
+    // where it stands. Comfortably wider than the few pixels it overshoots by, but local to the plan.
+    private const float TakeoffSlack = 12f;
 
     private bool droppingThroughPlatform;
     private StageDataSO dropStage;
@@ -433,15 +433,17 @@ public abstract class NpcAI : MonoBehaviour
             float takeoffTolerance = navigationStep.kind == BotPlatformNavigator.Kind.Drop ? 5f : 1f;
 
             // From rest the smallest move the owner can make is ~5px (a unit of speed every two run
-            // frames, then braking a unit every four), so it can overshoot a 1px jump window from
-            // either side forever -- that left a bot shuffling under its Shop disk and never jumping.
-            // Whenever it stops near the takeoff, ask the planner whether the same jump still lands
-            // from right here, and take it from here if so.
-            if (navigationStep.kind == BotPlatformNavigator.Kind.Jump
+            // frames, then braking a unit every four), so it can overshoot a takeoff window from
+            // either side forever -- that left a bot shuffling under its Shop disk and never
+            // jumping, and on its disk platform over its Gamba and never dropping. Whenever it stops
+            // near the takeoff, ask the planner whether the same jump or drop still lands from right
+            // here, and take it from here if so.
+            if ((navigationStep.kind == BotPlatformNavigator.Kind.Jump
+                    || navigationStep.kind == BotPlatformNavigator.Kind.Drop)
                 && Mathf.Abs(position.x - navigationStep.takeoff.x) > takeoffTolerance
-                && Mathf.Abs(position.x - navigationStep.takeoff.x) <= JumpTakeoffSlack
+                && Mathf.Abs(position.x - navigationStep.takeoff.x) <= TakeoffSlack
                 && IsGrounded && Mathf.Abs(owner.hSpd.ToFloat()) < 0.1f
-                && platformNavigator.TryJumpFrom(navigationStep, position.x, out BotPlatformNavigator.Step fromHere))
+                && platformNavigator.TryTakeOffFrom(navigationStep, position.x, out BotPlatformNavigator.Step fromHere))
             {
                 navigationStep = fromHere;
             }
@@ -1321,6 +1323,12 @@ public abstract class NpcAI : MonoBehaviour
     /// <summary>
     /// Counts ticks where the bot asked to move and the owner didn't actually shift. Position is a
     /// frame behind here -- PlayerUpdate runs after GetInputs -- which is fine for spotting a stall.
+    ///
+    /// Only a grounded Run counts. Stuck means shoving against something, and that is the only state
+    /// the check is for; while the owner can't act on input at all -- falling in from a spawn, or
+    /// the whole screen-transition cover, which drops every slot's input -- asking without moving
+    /// is expected. Counting those frames is what made a bot "unstick" with a jump on its very first
+    /// step of a rematch lobby, straight up onto the disk platform over its own Gamba.
     /// </summary>
     private void UpdateStuckTracking()
     {
@@ -1330,7 +1338,8 @@ public abstract class NpcAI : MonoBehaviour
         }
 
         float currentX = owner.position.X.ToFloat();
-        bool askedToMove = intentUsed && intentDirection % 3 != 2;
+        bool askedToMove = intentUsed && intentDirection % 3 != 2
+            && owner.isGrounded && owner.state == PlayerState.Run;
 
         if (askedToMove && Mathf.Abs(currentX - lastTrackedX) < 0.35f)
         {

@@ -25,6 +25,8 @@ internal static class Program
         Run("drop input continues until feet clear the platform", DropHold);
         Run("drop first stops a running bot to avoid a slide", StopBeforeDrop);
         Run("NPC reaches every lobby/shop disk from anywhere in its room", LobbyDiskApproach);
+        Run("NPC held still by a screen transition doesn't jump on its first step", NoJumpAfterHeldInput);
+        Run("NPC drops from anywhere on its disk platform down to its Gamba", LobbyGambaDescent);
         Console.WriteLine(failed == 0 ? "All navigation regressions passed." : $"{failed} regression(s) failed.");
         return failed == 0 ? 0 : 1;
     }
@@ -296,6 +298,51 @@ internal static class Program
         }
     }
 
+    // The Gamba only takes a hit at its own height, so a bot on the disk platform above it has to
+    // drop through first. The drop needs the bot at rest near its takeoff, and like the jump it
+    // used to overshoot that window from either side forever from about one start in nine.
+    private static void LobbyGambaDescent()
+    {
+        var stage = LobbyStage();
+        for (float x = 80f; x <= 220f; x += 5f)
+        {
+            try { Simulate(stage, new Vector2(x, -112f), new Vector2(233f, -192f), true, 24, 3); }
+            catch (InvalidOperationException error)
+            {
+                throw new InvalidOperationException($"From ({x}, -112) to P4's Gamba: {error.Message}");
+            }
+        }
+    }
+
+    // While the screen-transition cover is up the game drops every slot's input, so the bot asks to
+    // walk and goes nowhere. Those frames must not count as stuck, or its first real step is an
+    // "unstick" jump -- which put rematch-lobby bots on the disk platform over their own Gamba.
+    private static void NoJumpAfterHeldInput()
+    {
+        var stage = LobbyStage();
+        var npc = Probe(-192f);
+        npc.owner.position = new FixedPosition(145f, -192f);
+        npc.owner.playerWidth = 24;
+        npc.owner.runSpeed = 3;
+        GameManager.Instance = new GameManager { stage = stage };
+        npc.Action = () => npc.TravelX(213f);
+
+        // P4's spawn, walking toward its Gamba, with the owner frozen: no simulation step.
+        for (int tick = 0; tick < 60; tick++)
+        {
+            npc.Tick();
+        }
+
+        var simulation = new MovementSimulation(npc.owner, stage);
+        for (int tick = 0; tick < 120; tick++)
+        {
+            npc.Tick();
+            simulation.Step(npc.npcInputSnapshot);
+            Check(npc.owner.isGrounded,
+                $"Jumped {tick} ticks after input came back, at ({npc.owner.position.X.ToFloat():0},{npc.owner.position.Y.ToFloat():0}).");
+        }
+    }
+
     private static void ActualLobbyRoutes()
     {
         var stage = LobbyStage();
@@ -326,6 +373,7 @@ internal static class Program
         public void Jump() => TapJump();
         public void Stand() => Neutral();
         public void Travel(Vector2 goal) => TravelToward(goal);
+        public void TravelX(float x) => TravelTowardX(x);
         public void Drop(float targetY) { if (!TryDropToward(targetY)) Neutral(); }
     }
 }

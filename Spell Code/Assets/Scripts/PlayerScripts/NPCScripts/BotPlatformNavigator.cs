@@ -362,20 +362,20 @@ public sealed class BotPlatformNavigator
     }
 
     /// <summary>
-    /// Re-runs a planned jump's arc from startX instead of its planned takeoff, and returns the step
-    /// rebuilt from there when it still lands on the same surface. A bot can't always stop exactly on
-    /// a takeoff: from rest its smallest move is several pixels, so it can overshoot a 1px window
-    /// forever. Only valid against the graph the step was planned on, i.e. before the next
-    /// TryGetNextStep call can rebuild it.
+    /// Re-runs a planned jump's or drop's arc from startX instead of its planned takeoff, and returns
+    /// the step rebuilt from there when it still lands on the same surface. A bot can't always stop
+    /// exactly on a takeoff: from rest its smallest move is several pixels, so it can overshoot a
+    /// narrow window forever. Only valid against the graph the step was planned on, i.e. before the
+    /// next TryGetNextStep call can rebuild it.
     /// </summary>
-    public bool TryJumpFrom(Step planned, float startX, out Step fromHere)
+    public bool TryTakeOffFrom(Step planned, float startX, out Step fromHere)
     {
         fromHere = planned;
-        if (planned.kind != Kind.Jump
+        if ((planned.kind != Kind.Jump && planned.kind != Kind.Drop)
             || planned.fromSurface < 0 || planned.fromSurface >= surfaces.Count
             || planned.toSurface < 0 || planned.toSurface >= surfaces.Count)
             return false;
-        return TryArc(planned.fromSurface, planned.toSurface, Kind.Jump, startX, planned.jumpsRequired,
+        return TryArc(planned.fromSurface, planned.toSurface, planned.kind, startX, planned.jumpsRequired,
             out fromHere, out _);
     }
 

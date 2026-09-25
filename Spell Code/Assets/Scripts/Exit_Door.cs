@@ -21,18 +21,30 @@ public class Exit_Door : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+        GameManager gameManager = GameManager.Instance;
+        // The door and TempUI live under the persistent GameManager. An invite can begin while
+        // this selector is open, and scene loading is delayed by the screen-cover animation, so
+        // never allow the SoloLobby door to (re)open a persistent selector during that window.
+        if (gameManager == null
+            || gameManager.screenTransitioning
+            || gameManager.IsOnlineEntryPending)
+        {
+            isOpen = false;
+            return;
+        }
+
         CheckOpenDoor();
         if (CheckAllPlayersReady() && isPrimed)
         {
             if (doorID == 1)
             {
                 isPrimed = false;
-                GameManager.Instance.tempUI.SetSoloMenuActive(true);
+                gameManager.tempUI.SetSoloMenuActive(true);
             }
             if (doorID == 2)
             {
                 isPrimed = false;
-                GameManager.Instance.tempUI.SetMultiplayerMenuActive(true);
+                gameManager.tempUI.SetMultiplayerMenuActive(true);
             }
         }
     }

@@ -74,8 +74,133 @@ public class GameManager : MonoBehaviour
     public static ushort baseEliminationLives = 1;
     public static ushort maxEliminationLives = 3;
 
+    // Custom match rules (the Match Options panel) can pick the win condition for the modes that
+    // don't force one. Kept as an explicit opt-in flag rather than just a value, so "the player never
+    // opened the panel" stays distinguishable from "the player chose RAM Rush".
+    public static bool useCustomWinCon = false;
+    public static WinCon customWinCon = WinCon.RAMRush;
+
+    private const ushort DefaultRamToWin = 400;
+    private const ushort DefaultRamPerRound = 100;
+    private const ushort DefaultStartingLives = 1;
+    private const ushort DefaultLivesPerRound = 1;
+    private const ushort DefaultMaxLives = 3;
+
+    /// <summary>
+    /// Whether the Match Options rule set is in force right now. The panel is a NORMAL-mode feature:
+    /// Showdown runs a fixed 3 lives, and Turbo/Chaos keep the stock RAM numbers, so every consumer
+    /// of the tunable values checks this rather than reading the statics directly.
+    ///
+    /// gamemode is hashed and agreed between peers, and the rules themselves arrive from the host,
+    /// so this evaluates identically on every machine.
+    /// </summary>
+    private bool CustomRulesApplyNow => useCustomWinCon && gamemode == Gamemode.Normal;
+
+    /// <summary>Stock rules. These statics survive scene loads, so anything starting a match that
+    /// should not inherit a previous custom rule set has to call this.</summary>
+    public static void ResetMatchRulesToDefaults()
+    {
+        useCustomWinCon = false;
+        customWinCon = WinCon.RAMRush;
+        baseRamNeeddedtowin = DefaultRamToWin;
+        ramIncreasePerRound = DefaultRamPerRound;
+        baseEliminationLives = DefaultStartingLives;
+        livesIncreasePerRound = DefaultLivesPerRound;
+        maxEliminationLives = DefaultMaxLives;
+    }
+
+    /// <summary>
+    /// Compact wire form of the custom rules, published in lobby metadata AND embedded in the match
+    /// start token. Empty string means "no custom rules", which every peer reads as stock values.
+    ///
+    /// Versioned: every field here feeds ramNeededToWinRound / roundLives / winCon, all of which are
+    /// in SerializeSharedGameplayHashState. A peer that misreads the string would desync on frame
+    /// one, so an unrecognised version falls back to stock rather than guessing at the layout.
+    /// </summary>
+    public static string EncodeMatchRules()
+    {
+        if (!useCustomWinCon)
+        {
+            return string.Empty;
+        }
+
+        return string.Join(",",
+            "1",
+            ((int)customWinCon).ToString(System.Globalization.CultureInfo.InvariantCulture),
+            baseRamNeeddedtowin.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            ramIncreasePerRound.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            baseEliminationLives.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            livesIncreasePerRound.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            maxEliminationLives.ToString(System.Globalization.CultureInfo.InvariantCulture));
+    }
+
+    /// <summary>
+    /// Applies rules received from the host. EVERY peer (the host included) goes through here rather
+    /// than through its own panel, so the lobby metadata is the single authority and two peers can
+    /// never be running different numbers.
+    /// </summary>
+    public void ApplyOnlineMatchRules(string encoded)
+    {
+        if (string.IsNullOrEmpty(encoded))
+        {
+            ResetMatchRulesToDefaults();
+            RefreshRoundWinConPointLimit();
+            return;
+        }
+
+        string[] parts = encoded.Split(',');
+        if (parts.Length != 7 || parts[0] != "1")
+        {
+            Debug.LogWarning($"[GameManager] Unrecognised match rules '{encoded}'. Falling back to stock rules.");
+            ResetMatchRulesToDefaults();
+            RefreshRoundWinConPointLimit();
+            return;
+        }
+
+        if (!TryParseRuleField(parts[1], out int winConValue)
+            || !TryParseRuleField(parts[2], out int ram)
+            || !TryParseRuleField(parts[3], out int ramPerRound)
+            || !TryParseRuleField(parts[4], out int lives)
+            || !TryParseRuleField(parts[5], out int livesPerRound)
+            || !TryParseRuleField(parts[6], out int maxLives))
+        {
+            Debug.LogWarning($"[GameManager] Malformed match rules '{encoded}'. Falling back to stock rules.");
+            ResetMatchRulesToDefaults();
+            RefreshRoundWinConPointLimit();
+            return;
+        }
+
+        useCustomWinCon = true;
+        customWinCon = winConValue == (int)WinCon.Elimination ? WinCon.Elimination : WinCon.RAMRush;
+        baseRamNeeddedtowin = (ushort)Mathf.Clamp(ram, 0, ushort.MaxValue);
+        ramIncreasePerRound = (ushort)Mathf.Clamp(ramPerRound, 0, ushort.MaxValue);
+        baseEliminationLives = (ushort)Mathf.Clamp(lives, 0, ushort.MaxValue);
+        livesIncreasePerRound = (ushort)Mathf.Clamp(livesPerRound, 0, ushort.MaxValue);
+        maxEliminationLives = (ushort)Mathf.Clamp(maxLives, 1, ushort.MaxValue);
+
+        // winCon is derived from the gamemode, so re-derive it now that the override has landed, then
+        // recompute the limits the round logic reads.
+        winCon = ResolveWinConForGamemode(gamemode, true);
+        RefreshRoundWinConPointLimit();
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[WinCon] applied online rules '{encoded}' -> winCon={winCon} ramBase={baseRamNeeddedtowin} livesBase={baseEliminationLives}");
+        }
+    }
+
+    private static bool TryParseRuleField(string text, out int value)
+    {
+        return int.TryParse(text, System.Globalization.NumberStyles.Integer,
+            System.Globalization.CultureInfo.InvariantCulture, out value);
+    }
+
+    // Elimination reads roundLives. This used to be Mathf.Max(1, 3) -- a hardcoded 3 -- so every
+    // Elimination match ran on exactly 3 lives and the whole roundLives formula
+    // (baseEliminationLives, livesIncreasePerRound, maxEliminationLives) was computed, hashed, and
+    // then ignored. The Max(1, ...) floor stays so a rule set of 0 can't start a player already dead.
     public ushort WinConPointLimit => winCon == WinCon.Elimination
-        ? (ushort)Mathf.Max(1, 3)
+        ? (ushort)Mathf.Max(1, roundLives)
         : ramNeededToWinRound;
 
 
@@ -187,6 +312,17 @@ public class GameManager : MonoBehaviour
     public TextMeshProUGUI rollbackFramesText;
     private const float NETWORK_INFO_DISPLAY_REFRESH_SECONDS = 2f;
     private float nextNetworkInfoDisplayRefreshTime = 0f;
+
+    // Split so the debug toggle and the game's own "should this be on screen at all" logic don't
+    // fight each other. The game pushes networkInfoRequestedVisible from ~8 call sites as the match
+    // state changes; the toggle only ever SUPPRESSES that, so flipping it can't force the panel up
+    // somewhere the game deliberately hides it (the End scene, offline, mid-transition).
+    // Purely local presentation: nothing here is simulated or hashed.
+    private bool networkInfoRequestedVisible;
+    private bool networkInfoToggledOn = true;
+
+    /// <summary>Whether the ping / rollback-frames panel is allowed on screen.</summary>
+    public bool NetworkInfoPanelEnabled => networkInfoToggledOn;
 
     [Header("Online Match State")]
     public bool isWaitingForOpponent = false;
@@ -570,6 +706,14 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // Also from Update, and for the same reason: pausing here would otherwise run inside the
+        // input system's device callback.
+        if (offlineGamepadLost)
+        {
+            offlineGamepadLost = false;
+            TryAutoPauseForLostGamepad();
+        }
+
         // Don't touch PlayerInputManager during online matches
         if (!isOnlineMatchActive)
         {
@@ -637,9 +781,28 @@ public class GameManager : MonoBehaviour
     /// the online mode resolution (ApplyOnlineGameMode) have to arrive at the same answer. gamemode
     /// itself is already hashed and agreed between peers, so deriving winCon from it is deterministic.
     /// </summary>
-    private static WinCon ResolveWinConForGamemode(Gamemode mode)
+    /// <param name="allowCustomRules">
+    /// Whether the Match Options override may be consulted. TRUE for the offline chooser, FALSE for
+    /// the online path too, now that the override is transmitted from the host and applied by
+    /// ApplyOnlineMatchRules. It stays a parameter so a future caller has to state its intent:
+    /// winCon is in SerializeSharedGameplayHashState, so an unsynced local value desyncs frame one.
+    /// </param>
+    private static WinCon ResolveWinConForGamemode(Gamemode mode, bool allowCustomRules)
     {
-        return mode == Gamemode.Fighter ? WinCon.Elimination : WinCon.RAMRush;
+        // Showdown forces Elimination regardless of custom rules; it has no RAM economy to win with.
+        if (mode == Gamemode.Fighter)
+        {
+            return WinCon.Elimination;
+        }
+
+        // Match Options are a Normal-mode feature. Turbo and Chaos keep RAM Rush regardless of what
+        // the panel was last set to.
+        if (allowCustomRules && useCustomWinCon && mode == Gamemode.Normal)
+        {
+            return customWinCon;
+        }
+
+        return WinCon.RAMRush;
     }
 
     //int because OnClick() doesn't accept enums as parameters
@@ -649,7 +812,24 @@ public class GameManager : MonoBehaviour
         // Assigned for EVERY mode, not just the one that needs Elimination. winCon is [NonSerialized]
         // and GameManager survives scene changes, so setting it only in the Fighter case left it
         // stuck on Elimination for every later Normal/Turbo/Chaos match until the game restarted.
-        winCon = ResolveWinConForGamemode(gamemode);
+        winCon = ResolveWinConForGamemode(gamemode, true);
+
+        // Picking a mode here starts a NEW match, so the round counter goes back to zero.
+        // totalRoundsPlayed lives on the DontDestroyOnLoad DataManager and was otherwise only ever
+        // cleared by PrepareRematchFromEnd, so it accumulated for the whole session, and both
+        // ramNeededToWinRound and roundLives grow with it. That is why a custom "1 starting life"
+        // match still began at the 3-life cap: base 1 + 1 per round x however many rounds had been
+        // played since launch, clamped by maxEliminationLives.
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+
+        if (dataManager != null)
+        {
+            dataManager.totalRoundsPlayed = 0;
+        }
+
         Debug.Log("Gamemode set to: " + gamemode);
 
         switch (gamemode)
@@ -729,6 +909,13 @@ public class GameManager : MonoBehaviour
             && UnityEngine.Input.GetKeyDown(KeyCode.Backslash))
         {
             SteamAchievements.ResetAllForTesting();
+        }
+
+        // "." toggles the ping / rollback-frames readout. Punctuation like the rest of these keys so
+        // it can't collide with a gameplay binding while a match is running.
+        if (UnityEngine.Input.GetKeyDown(KeyCode.Period))
+        {
+            ToggleNetworkInfoPanel();
         }
     }
 
@@ -1010,6 +1197,11 @@ public class GameManager : MonoBehaviour
     // Set by OnInputDeviceChanged, consumed in Update.
     private bool onlineInputDevicesDirty;
 
+    // Set by OnInputDeviceChanged when a gamepad vanishes during an offline match, consumed in
+    // Update. Same deferral reason as onlineInputDevicesDirty: the callback fires from inside the
+    // input system's own update, and pausing re-scopes the UI device list and moves timeScale.
+    private bool offlineGamepadLost;
+
     private void EnsureOnlineLocalPlayerInputActive()
     {
         if (localPlayerIndex < 0 || localPlayerIndex >= players.Length)
@@ -1113,17 +1305,37 @@ public class GameManager : MonoBehaviour
 
     private void SetNetworkInfoVisible(bool isVisible)
     {
+        networkInfoRequestedVisible = isVisible;
+        ApplyNetworkInfoVisibility();
+    }
+
+    private void ApplyNetworkInfoVisibility()
+    {
         ResolveNetworkInfoReferences();
 
-        if (networkInfo != null && networkInfo.activeSelf != isVisible)
+        bool shouldShow = networkInfoRequestedVisible && networkInfoToggledOn;
+
+        if (networkInfo != null && networkInfo.activeSelf != shouldShow)
         {
-            networkInfo.SetActive(isVisible);
+            networkInfo.SetActive(shouldShow);
         }
 
-        if (!isVisible)
+        if (!shouldShow)
         {
             nextNetworkInfoDisplayRefreshTime = 0f;
         }
+    }
+
+    /// <summary>
+    /// Flips the ping / rollback-frames panel. Reachable from the private beta's debug hotkeys, so it
+    /// is gated by SteamManager.DebugToolsEnabled at the call site rather than here -- the method
+    /// itself is safe to call from anywhere (a settings toggle later, for instance).
+    /// </summary>
+    public void ToggleNetworkInfoPanel()
+    {
+        networkInfoToggledOn = !networkInfoToggledOn;
+        ApplyNetworkInfoVisibility();
+        Debug.Log($"[NetworkInfo] Panel {(networkInfoToggledOn ? "enabled" : "disabled")}.");
     }
 
     private void UpdateNetworkInfoDisplay()
@@ -1187,7 +1399,7 @@ public class GameManager : MonoBehaviour
     {
         OnlineGameModeSelection mode = OnlineGameModeSelection.Resolve(gameModeId, gameModeDisplayName);
         Gamemode resolvedGamemode = ResolveOnlineGamemode(mode.Id);
-        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode);
+        WinCon resolvedWinCon = ResolveWinConForGamemode(resolvedGamemode, true);
         bool modeChanged = ActiveOnlineGameMode.Id != mode.Id
             || ActiveOnlineGameMode.DisplayName != mode.DisplayName
             || gamemode != resolvedGamemode
@@ -1286,6 +1498,27 @@ public class GameManager : MonoBehaviour
 
         RollbackManager.Instance.InputDelay = Mathf.Max(RollbackManager.Instance.InputDelay, 3);
         onlineDisconnectedSlots.Clear();
+
+        // A new online match starts at round zero, same as SetGamemode does for the offline chooser.
+        // totalRoundsPlayed otherwise carries over from earlier matches in this session and inflates
+        // ramNeededToWinRound / roundLives. Every peer cold-starting does this identically so they
+        // still agree; a drop-in joiner arriving mid-match has its value overwritten by the host
+        // snapshot (which carries totalRoundsPlayed) rather than by this line.
+        if (dataManager == null)
+        {
+            dataManager = DataManager.Instance;
+        }
+
+        if (dataManager != null)
+        {
+            dataManager.totalRoundsPlayed = 0;
+        }
+
+        // Recompute the limits from the round count we just zeroed, BEFORE ResetPlayers below seeds
+        // every player's winConPoints from WinConPointLimit. Idempotent: ApplyOnlineMatchRules and
+        // OnSceneLoaded call this too.
+        RefreshRoundWinConPointLimit();
+
         ApplyOnlineRoster(roster);
 
         onboardManager = FindFirstObjectByType<OnboardManager>();
@@ -3202,18 +3435,13 @@ public class GameManager : MonoBehaviour
         }
 
         dataManager.totalRoundsPlayed = Mathf.Max(0, totalRoundsPlayed);
-        // Must use the SAME base as the OnSceneLoaded computation. This hardcoded 300 against
-        // that path's baseRamNeeddedtowin (400) put the two machines a permanent 100 apart for the
-        // same round count, and ramNeededToWinRound is part of SerializeSharedGameplayHashState
-        // so the shared hash diverged on frame one and never reconverged.
-        if (winCon == WinCon.RAMRush)
-        {
-            ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * dataManager.totalRoundsPlayed);
-        }
-        if (winCon == WinCon.Elimination)
-        {
-            roundLives = ComputeEliminationRoundLives(dataManager.totalRoundsPlayed);
-        }
+
+        // Delegated instead of repeating the formulas. This path used to carry its own copy with a
+        // hardcoded 300 against the other path's 400, which put the two machines a permanent 100
+        // apart for the same round count -- and ramNeededToWinRound is in
+        // SerializeSharedGameplayHashState, so the shared hash diverged on frame one and never
+        // reconverged. One writer means that class of drift can't come back.
+        RefreshRoundWinConPointLimit();
         onlineRoundAdvanceApplied = true;
     }
 
@@ -4919,6 +5147,13 @@ public class GameManager : MonoBehaviour
         player.winConPoints = isActivePlayer && winCon == WinCon.Elimination && !isEndScene
             ? WinConPointLimit
             : (ushort)0;
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[WinCon] seeded P{player.pID} winConPoints={player.winConPoints}"
+                + $" (scene={SceneManager.GetActiveScene().name} winCon={winCon} limit={WinConPointLimit}"
+                + $" roundLives={roundLives} livesBase={baseEliminationLives} rounds={CurrentTotalRoundsPlayed})");
+        }
         player.storedKillBonus = 0;
         if (winCon != WinCon.RAMRush)
         {
@@ -6465,24 +6700,106 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void OnInputDeviceChanged(InputDevice device, InputDeviceChange change)
     {
-        if (!isOnlineMatchActive)
-        {
-            return;
-        }
-
-        if (change != InputDeviceChange.Added
-            && change != InputDeviceChange.Reconnected
-            && change != InputDeviceChange.Enabled)
-        {
-            return;
-        }
-
         if (!InputDeviceManager.IsValidInput(device))
         {
             return;
         }
 
-        onlineInputDevicesDirty = true;
+        if (isOnlineMatchActive)
+        {
+            if (change == InputDeviceChange.Added
+                || change == InputDeviceChange.Reconnected
+                || change == InputDeviceChange.Enabled)
+            {
+                onlineInputDevicesDirty = true;
+            }
+
+            return;
+        }
+
+        // Offline: a pad dying mid-match leaves whoever was holding it unable to move OR pause, so
+        // open the pause menu for them. Gamepads only -- losing the keyboard is not the case this is
+        // for, and Removed/Disconnected/Disabled all mean the same thing to a player mid-round.
+        if (device is Gamepad
+            && (change == InputDeviceChange.Removed
+                || change == InputDeviceChange.Disconnected
+                || change == InputDeviceChange.Disabled))
+        {
+            offlineGamepadLost = true;
+        }
+    }
+
+    /// <summary>
+    /// Opens the pause menu after a gamepad drops out of an offline match.
+    /// </summary>
+    private void TryAutoPauseForLostGamepad()
+    {
+        if (isOnlineMatchActive || !isRunning)
+        {
+            return;
+        }
+
+        Pause pauseMenu = tempUI != null ? tempUI.GetComponent<Pause>() : null;
+        if (pauseMenu == null || pauseMenu.paused)
+        {
+            return;
+        }
+
+        // Scope the menu to a player who still HAS a device. Pausing as the player who just lost
+        // their pad would leave TryGetPausePlayerDevices with nothing to scope to, and it bails out
+        // without scoping at all, leaving the menu on whatever device list happened to be set.
+        int driverIndex = FindPlayerIndexWithUsableDevice();
+        if (driverIndex < 0)
+        {
+            return;
+        }
+
+        // CanOpenPauseMenu reads playerPauseIndex, so it has to see the index we intend to use.
+        // Restored if the gate refuses, rather than leaving the pause menu pointing somewhere new.
+        int previousPauseIndex = pauseMenu.playerPauseIndex;
+        pauseMenu.playerPauseIndex = driverIndex;
+
+        if (!pauseMenu.CanOpenPauseMenu())
+        {
+            pauseMenu.playerPauseIndex = previousPauseIndex;
+            return;
+        }
+
+        pauseMenu.Pausing();
+    }
+
+    /// <summary>
+    /// First connected player still holding a usable device. InputDevice.added is the check that
+    /// matters: a removed pad is still referenced by the PlayerInput that was paired to it, so
+    /// IsValidInput alone would happily hand back the controller that just got unplugged.
+    /// </summary>
+    private int FindPlayerIndexWithUsableDevice()
+    {
+        for (int i = 0; i < playerCount && i < players.Length; i++)
+        {
+            PlayerController player = players[i];
+            if (player == null)
+            {
+                continue;
+            }
+
+            PlayerInput playerInput = player.GetComponent<PlayerInput>();
+            if (playerInput == null)
+            {
+                continue;
+            }
+
+            for (int d = 0; d < playerInput.devices.Count; d++)
+            {
+                InputDevice device = playerInput.devices[d];
+                if (device != null && device.added && InputDeviceManager.IsValidInput(device))
+                {
+                    return i;
+                }
+            }
+        }
+
+        return -1;
     }
 
     /// <summary>
@@ -6498,8 +6815,16 @@ public class GameManager : MonoBehaviour
     /// roundLives (`if (roundLives < 3)`), which makes the result depend on prior state and
     /// therefore on whatever a rollback happened to restore.
     /// </summary>
-    private static ushort ComputeEliminationRoundLives(int roundsPlayed)
+    private ushort ComputeEliminationRoundLives(int roundsPlayed)
     {
+        // Showdown is a flat 3 lives by design and ignores the Match Options rules, which are
+        // Normal-only. No other mode reaches the tunable formula below: Fighter forces Elimination,
+        // Normal reaches it only via a custom rule set, and Turbo/Chaos are always RAM Rush.
+        if (!CustomRulesApplyNow)
+        {
+            return DefaultMaxLives;
+        }
+
         int lives = baseEliminationLives + livesIncreasePerRound * Mathf.Max(0, roundsPlayed);
         return (ushort)Mathf.Min(lives, maxEliminationLives);
     }
@@ -6520,11 +6845,20 @@ public class GameManager : MonoBehaviour
         int roundsPlayed = dataManager != null ? dataManager.totalRoundsPlayed : 0;
         if (winCon == WinCon.RAMRush)
         {
-            ramNeededToWinRound = (ushort)(baseRamNeeddedtowin + ramIncreasePerRound * roundsPlayed);
+            ushort ramBase = CustomRulesApplyNow ? baseRamNeeddedtowin : DefaultRamToWin;
+            ushort ramStep = CustomRulesApplyNow ? ramIncreasePerRound : DefaultRamPerRound;
+            ramNeededToWinRound = (ushort)(ramBase + ramStep * roundsPlayed);
         }
         else if (winCon == WinCon.Elimination)
         {
             roundLives = ComputeEliminationRoundLives(roundsPlayed);
+        }
+
+        if (SteamManager.DebugToolsEnabled)
+        {
+            Debug.Log($"[WinCon] {winCon} roundsPlayed={roundsPlayed} | ram base={baseRamNeeddedtowin} +{ramIncreasePerRound}/round -> {ramNeededToWinRound}"
+                + $" | lives base={baseEliminationLives} +{livesIncreasePerRound}/round cap={maxEliminationLives} -> {roundLives}"
+                + $" | customWinCon={(useCustomWinCon ? customWinCon.ToString() : "off")}");
         }
     }
 
@@ -6537,6 +6871,14 @@ public class GameManager : MonoBehaviour
         {
             SetLocalOnlineInputCaptureSuppressed(true);
         }
+
+        // MUST run before ResetPlayers below. ResetPlayerWinConState seeds every player's
+        // winConPoints from WinConPointLimit, which reads roundLives / ramNeededToWinRound -- and
+        // both are [NonSerialized] fields on this singleton, so they survive scene loads holding the
+        // PREVIOUS match's values. Refreshing after the reset meant a match started on the last
+        // match's limit: a Showdown match leaves roundLives at 3, so a custom Elimination match set
+        // to 1 life still started everyone on 3.
+        RefreshRoundWinConPointLimit();
 
         bool isEndScene = scene.name == "End";
         if (isEndScene)
@@ -6557,7 +6899,6 @@ public class GameManager : MonoBehaviour
             }
             ResetPlayers();
         }
-        RefreshRoundWinConPointLimit();
         //Debug.Log($"Scene loaded: {scene.name}");
 
         // Must run before anything in the new scene can consume the gameplay RNG: the old scene's
@@ -7085,10 +7426,10 @@ public class GameManager : MonoBehaviour
             roundEndedText.enabled = false;
         }
 
-        if (networkInfo != null)
-        {
-            networkInfo.SetActive(false);
-        }
+        // Through the helper rather than SetActive directly, so networkInfoRequestedVisible stays in
+        // step -- otherwise the tracked state says "visible" while the object is off, and the next
+        // toggle re-shows it somewhere it should stay hidden.
+        SetNetworkInfoVisible(false);
     }
 
     private void InitializeOnlineShopSceneState()
@@ -7156,7 +7497,8 @@ public class GameManager : MonoBehaviour
         if (SettingsManager.Instance.IsFirstLaunch())
         {
             SettingsManager.Instance.MarkFirstLaunchComplete();
-            tempUI.OpenTutorialPromptMenu();
+            Scene activeScene = SceneManager.GetActiveScene();
+            if (activeScene.name == "SoloLobby") tempUI.OpenTutorialPromptMenu();
         }
     }
 

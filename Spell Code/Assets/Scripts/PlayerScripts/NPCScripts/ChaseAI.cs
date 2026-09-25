@@ -58,6 +58,10 @@ public class ChaseAI : NpcAI
     // How hard a nearly-eliminated opponent pulls, per stock they're down.
     private const float StockWeight = 60f;
 
+    // Outweighs any mix of distance, bounty and stocks: an opponent there's no route to is only
+    // picked when nobody reachable is left.
+    private const float UnreachablePenalty = 100000f;
+
     /// <summary>
     /// True when losing one more exchange ends this bot's match. Only Elimination has that cliff --
     /// RAM Rush respawns you -- so this is what makes the two modes feel different to play against.
@@ -85,6 +89,13 @@ public class ChaseAI : NpcAI
             return base.SelectTarget();
         }
 
+        // Reachability is judged from the surface underfoot, so mid-air there's nothing to re-judge
+        // it by: keep chasing whoever the bot was chasing.
+        if (!IsGrounded && Target != null && Target != owner && Target.isAlive && Target.isConnected)
+        {
+            return Target;
+        }
+
         PlayerController best = null;
         float bestScore = float.MinValue;
 
@@ -106,6 +117,14 @@ public class ChaseAI : NpcAI
             else if (gameManager.winCon == GameManager.WinCon.Elimination)
             {
                 score += (gameManager.WinConPointLimit - candidate.winConPoints) * StockWeight;
+            }
+
+            // Horizontal distance alone picked opponents on the other floor of Dual Duel, stood
+            // right overhead at distance 0, over the real one on the same floor -- and chasing them
+            // is a jump loop under the ceiling. Anyone reachable beats anyone who isn't.
+            if (!CanReach(candidate))
+            {
+                score -= UnreachablePenalty;
             }
 
             if (score > bestScore)
@@ -153,6 +172,17 @@ public class ChaseAI : NpcAI
 
         if (!HasTarget)
         {
+            Neutral();
+            return;
+        }
+
+        // Only someone it can't get to is left -- its own floor of Dual Duel while the opponent there
+        // respawns, say. Climbing toward them is a jump loop under the ceiling, so stand its ground
+        // until someone reachable turns up. Not even a turn to face them: often they're straight
+        // overhead, where facing flips with every pixel they move.
+        if (!TargetReachable)
+        {
+            StopNavigation();
             Neutral();
             return;
         }
@@ -405,9 +435,11 @@ public class ChaseAI : NpcAI
             return false;
         }
 
-        // A low tier reaches for whatever is ready instead of what the situation wants.
-        SpellData spell = Tuning.PicksBestSpell ? ChooseSpell() : AnyReadySpell();
-        if (spell != null && HasRoomFor(spell) && BeginCast(spell))
+        // A low tier reaches for whatever is ready instead of what the situation wants. Either way
+        // only spells with room to cast them are considered, so an unaffordable favourite no longer
+        // blocks a cheaper spell that fits.
+        SpellData spell = Tuning.PicksBestSpell ? ChooseSpell(HasRoomFor) : AnyReadySpell(HasRoomFor);
+        if (spell != null && BeginCast(spell))
         {
             framesSinceAttempt = 0;
             return true;
@@ -428,9 +460,12 @@ public class ChaseAI : NpcAI
     /// Longer codes cost more frames to enter and leave more recovery behind, so they are only
     /// worth starting from further away. This is the whole risk model: length is commitment.
     /// </summary>
-    private bool HasRoomFor(SpellData spell)
+    private bool HasRoomFor(SpellData spell) => TargetDistanceX >= RoomNeededFor(spell);
+
+    private float RoomNeededFor(SpellData spell)
     {
-        int length = PlayerController.GetSpellInputLength(spell);
+        // Punk enters any spell as one direction, so its commitment is one step whatever the code.
+        int length = owner.vibeCoding ? 1 : PlayerController.GetSpellInputLength(spell);
         float required = MinCastSpace + (length * SpacePerCodeStep);
 
         // Discipline is the clearest difficulty knob there is: a reckless tier starts long codes at
@@ -443,7 +478,54 @@ public class ChaseAI : NpcAI
             required *= 1.6f;
         }
 
-        return TargetDistanceX >= required;
+        return required;
+    }
+
+    /// <summary>
+    /// The gap to hold: where the nearest-reaching spell the bot has ready both reaches and can be
+    /// afforded. A fixed band used to park every bot 56-124 out whatever it held, which is inside
+    /// the room most codes need -- so a long-range or long-code kit stood there casting nothing.
+    /// Reading only READY spells makes it breathe: when the short spell goes on cooldown, the bot
+    /// drifts out to where the long one works.
+    /// </summary>
+    private float PreferredDistanceForKit()
+    {
+        float preferred = float.MaxValue;
+        for (int i = 0; owner.spellList != null && i < owner.spellList.Count; i++)
+        {
+            SpellData spell = owner.spellList[i];
+            if (spell == null || spell.spellType != SpellType.Active || spell.cooldownCounter > 0
+                || PlayerController.GetSpellInputLength(spell) <= 0
+                || (owner.vibeCoding && i > 3))
+            {
+                continue;
+            }
+
+            SpellTactics.Profile profile = SpellTactics.For(spell);
+            if (profile.Role == SpellRole.Utility)
+            {
+                continue;
+            }
+
+            // Enhance isn't aimed, so its band means nothing; it just wants the space ScoreSpell asks for.
+            float reach = SpellTactics.IdealDistance(profile.Role == SpellRole.Enhance ? SpellRange.Medium : profile.Range);
+            preferred = Mathf.Min(preferred, Mathf.Max(reach, RoomNeededFor(spell)));
+        }
+
+        // Nothing ready: sit where the basic attack is in reach.
+        if (preferred == float.MaxValue)
+        {
+            preferred = PreferredDistance;
+        }
+
+        // Sit further out when a single mistake ends the match.
+        if (IsOnLastStock())
+        {
+            preferred *= 1.35f;
+        }
+
+        // Keep the whole band inside cast range, and its near edge off the target.
+        return Mathf.Clamp(preferred, BandWidth, MaxCastRange - BandWidth);
     }
 
     /// <summary>
@@ -455,8 +537,7 @@ public class ChaseAI : NpcAI
         int toward = TargetOffsetX > 0f ? 6 : 4;
         int away = TargetOffsetX > 0f ? 4 : 6;
 
-        // Sit further out when a single mistake ends the match.
-        float preferred = IsOnLastStock() ? PreferredDistance * 1.35f : PreferredDistance;
+        float preferred = PreferredDistanceForKit();
 
         if (TargetDistanceX > preferred + BandWidth)
         {

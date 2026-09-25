@@ -29,6 +29,9 @@ internal static class Program
         Run("NPC drops from anywhere on its disk platform down to its Gamba", LobbyGambaDescent);
         Run("Enhance spells are cast with room, never up close, and lose to an attack in band", EnhanceSpellChoice);
         Run("a bot backed into a ledge or wall turns to face its opponent", CorneredBotFacesTarget);
+        Run("on Dual Duel a bot goes after the opponent on its own floor, not the one overhead", DualDuelTargetsOwnFloor);
+        Run("a bot with only unreachable opponents stands its ground instead of jump-looping", UnreachableTargetHoldsStill);
+        Run("a long-range kit backs off to where it can cast instead of parking too close", LongRangeKitSpacing);
         Console.WriteLine(failed == 0 ? "All navigation regressions passed." : $"{failed} regression(s) failed.");
         return failed == 0 ? 0 : 1;
     }
@@ -265,7 +268,14 @@ internal static class Program
     }
     private static StageDataSO LobbyStage()
     {
-        string yaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, "Lobby_Arena StageDataSO.asset"));
+        var stage = LoadStage("Lobby_Arena StageDataSO.asset", new Vector3(-350, -205, 0), new Vector3(350, 205, 0));
+        Check(stage.solidCenter.Length == 14 && stage.platformCenter.Length == 4, "Active lobby geometry fixture failed to load.");
+        return stage;
+    }
+
+    private static StageDataSO LoadStage(string fileName, Vector3 borderMin, Vector3 borderMax)
+    {
+        string yaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, fileName));
         Vector2[] ReadVectors(string name)
         {
             string section = System.Text.RegularExpressions.Regex.Match(yaml,
@@ -274,11 +284,9 @@ internal static class Program
                 .Select(m => new Vector2(float.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture),
                     float.Parse(m.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture))).ToArray();
         }
-        var stage = new StageDataSO { solidCenter = ReadVectors("solidCenter"), solidExtent = ReadVectors("solidExtent"),
+        return new StageDataSO { solidCenter = ReadVectors("solidCenter"), solidExtent = ReadVectors("solidExtent"),
             platformCenter = ReadVectors("platformCenter"), platformExtent = ReadVectors("platformExtent"),
-            borderMin = new Vector3(-350, -205, 0), borderMax = new Vector3(350, 205, 0) };
-        Check(stage.solidCenter.Length == 14 && stage.platformCenter.Length == 4, "Active lobby geometry fixture failed to load.");
-        return stage;
+            borderMin = borderMin, borderMax = borderMax };
     }
 
     // The Shop reuses the lobby map. These are P4's three disk spots (GambaMachine.diskLocations 9-11)
@@ -356,6 +364,76 @@ internal static class Program
             Check(bot.facingRight, $"Cornered at the {name} with its back to the target (x={bot.position.X.ToFloat():0}).");
             Check(bot.position.X.ToFloat() < -150f, $"Wandered away from the {name} instead of standing its ground (x={bot.position.X.ToFloat():0}).");
         }
+    }
+
+    // Dual Duel is two chambers split by a wall-to-wall slab at y=0: P1/P2 above, P3/P4 below. P3
+    // and P4 spawn directly under P1 and P2, so nearest-by-horizontal-distance picked the player
+    // overhead, and with no route to them the bots jump-looped under the slab all round.
+    private static StageDataSO DualDuelStage() =>
+        LoadStage("DualDuel_Arena StageDataSO.asset", new Vector3(-300, -220, 0), new Vector3(300, 220, 0));
+
+    private static PlayerController Fighter(float x, float y, int pID) =>
+        new PlayerController { position = new FixedPosition(x, y), isGrounded = true, facingRight = true,
+            playerWidth = 24, runSpeed = 3, pID = pID };
+
+    private static (int jumps, float finalX) RunChase(StageDataSO stage, PlayerController bot, PlayerController[] players, int ticks)
+    {
+        GameManager.Instance = new GameManager { stage = stage, players = players, playerCount = players.Length };
+        var chase = new ChaseAI { owner = bot };
+        var simulation = new MovementSimulation(bot, stage);
+        int jumps = 0;
+        for (int tick = 0; tick < ticks; tick++)
+        {
+            chase.Tick();
+            simulation.Step(chase.npcInputSnapshot);
+            if (chase.npcInputSnapshot.ButtonStates[1] == ButtonState.Pressed) jumps++;
+        }
+        return (jumps, bot.position.X.ToFloat());
+    }
+
+    private static void DualDuelTargetsOwnFloor()
+    {
+        var bot = Fighter(-224f, -192f, 3);
+        var players = new[] { Fighter(-224f, 0f, 1), Fighter(224f, 0f, 2), bot, Fighter(224f, -192f, 4) };
+        var (jumps, finalX) = RunChase(DualDuelStage(), bot, players, 400);
+        Check(jumps <= 2, $"Jumped {jumps} times -- chasing the player overhead instead of P4.");
+        Check(finalX > 0f, $"Never went after P4 across its own floor (ended at x={finalX:0}).");
+    }
+
+    private static void UnreachableTargetHoldsStill()
+    {
+        var bot = Fighter(-224f, -192f, 3);
+        var (jumps, finalX) = RunChase(DualDuelStage(), bot, new[] { Fighter(-224f, 0f, 1), bot }, 300);
+        Check(jumps == 0, $"Jumped {jumps} times at an opponent there's no route to.");
+        Check(MathF.Abs(finalX + 224f) < 30f, $"Wandered off to x={finalX:0} with nobody reachable.");
+    }
+
+    // The fixed 56-124 band sat inside the room a 4-step code needs (128 at Medium), so a bot holding
+    // only Sickle Of The Night parked there and threw nothing but basic attacks all round.
+    private static void LongRangeKitSpacing()
+    {
+        var stage = Stage(new[] { (-600f, 600f, 0f, 20f) }, Array.Empty<(float,float,float,float)>());
+        var bot = Fighter(-50f, 0f, 1);
+        var target = Fighter(0f, 0f, 2);
+        bot.spellList.Add(new SpellData { spellName = "Sickle Of The Night", spellType = SpellType.Active, spellInput = 4 });
+        GameManager.Instance = new GameManager { stage = stage, players = new[] { bot, target }, playerCount = 2 };
+        var chase = new ChaseAI { owner = bot };
+        var simulation = new MovementSimulation(bot, stage);
+
+        int castsFromRange = 0;
+        for (int tick = 0; tick < 600; tick++)
+        {
+            chase.Tick();
+            simulation.Step(chase.npcInputSnapshot);
+            // Past ThreatRange a Code press can only be a spell -- the basic attack is kept closer in.
+            if (chase.npcInputSnapshot.ButtonStates[0] == ButtonState.Pressed
+                && MathF.Abs(target.position.X.ToFloat() - bot.position.X.ToFloat()) > 110f)
+            {
+                castsFromRange++;
+            }
+        }
+
+        Check(castsFromRange > 0, $"Never cast its long-range spell; parked at {MathF.Abs(bot.position.X.ToFloat()):0} away.");
     }
 
     // The Gamba only takes a hit at its own height, so a bot on the disk platform above it has to

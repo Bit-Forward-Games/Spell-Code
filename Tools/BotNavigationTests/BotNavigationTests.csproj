@@ -18,6 +18,7 @@
     <Compile Include="../../Spell Code/Assets/Scripts/PlayerScripts/NPCScripts/SpellTactics.cs" Link="SpellTactics.cs" />
     <Compile Include="../../Spell Code/Assets/Scripts/PlayerScripts/NPCScripts/ChaseAI.cs" Link="ChaseAI.cs" />
     <None Include="../../Spell Code/Assets/SO/Arena SOs/Lobby and Tutorials/Lobby_Arena StageDataSO.asset" Link="Lobby_Arena StageDataSO.asset" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../../Spell Code/Assets/SO/Arena SOs/General (3-4 players)/DualDuel_Arena StageDataSO.asset" Link="DualDuel_Arena StageDataSO.asset" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 </Project>
 

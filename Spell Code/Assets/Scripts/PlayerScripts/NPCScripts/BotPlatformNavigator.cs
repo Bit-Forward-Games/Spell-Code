@@ -121,6 +121,23 @@ public sealed class BotPlatformNavigator
         return false;
     }
 
+    /// <summary>
+    /// False only when both ends sit on surfaces the graph knows and no route joins them: somewhere
+    /// this body genuinely cannot get to, like the other floor of a two-level arena. Anything the
+    /// graph can't place counts as reachable, so a gap in the model never makes a bot give up.
+    /// </summary>
+    public bool CanReach(StageDataSO stage, Vector2 position, Vector2 target,
+        float halfWidth, float height, float jumpSpeed, float gravity, float runSpeed, int maxJumps)
+    {
+        if (TryGetNextStep(stage, position, target, halfWidth, height, jumpSpeed, gravity, runSpeed,
+                maxJumps, out _))
+            return true;
+        // A false above has already built the graph for these parameters, unless its inputs were
+        // unusable -- in which case there is nothing to judge by.
+        if (stage == null || cachedStage != stage) return true;
+        return FindSurface(position, true) < 0 || FindSurface(target, false) < 0;
+    }
+
     private int FindSurface(Vector2 point, bool supporting)
     {
         int best = -1;

@@ -95,6 +95,12 @@ public abstract class NpcAI : MonoBehaviour
 
     protected bool TargetFacingRight { get; private set; }
 
+    /// <summary>
+    /// False when a platform route to the target provably doesn't exist -- the other floor of a
+    /// two-level arena like Dual Duel. Chasing someone there is a jump loop under the ceiling.
+    /// </summary>
+    protected bool TargetReachable { get; private set; }
+
     protected bool IsGrounded => owner != null && owner.isGrounded;
 
     protected PlayerState State => owner != null ? owner.state : PlayerState.Idle;
@@ -136,6 +142,32 @@ public abstract class NpcAI : MonoBehaviour
         return nearest;
     }
 
+    /// <summary>
+    /// True unless there is provably no platform route from where the owner stands to the candidate.
+    /// Judged from the surface underfoot, so in mid-air it answers true rather than writing every
+    /// opponent off.
+    /// </summary>
+    protected bool CanReach(PlayerController candidate)
+    {
+        if (owner == null || candidate == null)
+        {
+            return false;
+        }
+
+        StageDataSO stage = Stage;
+        if (stage == null || !IsGrounded)
+        {
+            return true;
+        }
+
+        return platformNavigator.CanReach(stage,
+            new Vector2(owner.position.X.ToFloat(), owner.position.Y.ToFloat()),
+            new Vector2(candidate.position.X.ToFloat(), candidate.position.Y.ToFloat()),
+            owner.playerWidth.ToFloat() * 0.5f, owner.playerHeight.ToFloat(),
+            owner.jumpForce.ToFloat(), PlayerController.baseGravity, owner.runSpeed.ToFloat(),
+            owner.maxJumpCount);
+    }
+
     private void RefreshPerception()
     {
         Target = SelectTarget();
@@ -146,6 +178,7 @@ public abstract class NpcAI : MonoBehaviour
             TargetIsGrounded = false;
             TargetState = PlayerState.Idle;
             TargetFacingRight = false;
+            TargetReachable = false;
             return;
         }
 
@@ -154,6 +187,7 @@ public abstract class NpcAI : MonoBehaviour
         TargetIsGrounded = Target.isGrounded;
         TargetState = Target.state;
         TargetFacingRight = Target.facingRight;
+        TargetReachable = CanReach(Target);
     }
 
     #endregion
@@ -983,15 +1017,11 @@ public abstract class NpcAI : MonoBehaviour
     }
 
     /// <summary>
-    /// Picks the best ready active spell for the situation, or null when none of them fit it.
-    /// Every ready spell is scored on how well its range band matches the actual gap, then adjusted
-    /// for what the spell is for and whether the target is off the ground.
-    /// </summary>
-    /// <summary>
     /// Any ready active spell, for when the situation doesn't call for a judgement -- shooting an
     /// obstacle, say, where the only thing that matters is that a spell projectile comes out.
+    /// canCast, when given, skips spells the caller can't afford right now.
     /// </summary>
-    protected SpellData AnyReadySpell()
+    protected SpellData AnyReadySpell(Predicate<SpellData> canCast = null)
     {
         if (owner == null || owner.spellList == null)
         {
@@ -1004,7 +1034,8 @@ public abstract class NpcAI : MonoBehaviour
             if (spell != null
                 && spell.spellType == SpellType.Active
                 && spell.cooldownCounter <= 0
-                && PlayerController.GetSpellInputLength(spell) > 0)
+                && PlayerController.GetSpellInputLength(spell) > 0
+                && (canCast == null || canCast(spell)))
             {
                 return spell;
             }
@@ -1013,7 +1044,14 @@ public abstract class NpcAI : MonoBehaviour
         return null;
     }
 
-    protected SpellData ChooseSpell()
+    /// <summary>
+    /// Picks the best ready active spell for the situation, or null when none of them fit it.
+    /// Every ready spell is scored on how well its range band matches the actual gap, then adjusted
+    /// for what the spell is for and whether the target is off the ground. canCast, when given, is
+    /// applied BEFORE scoring: filtering only the winner meant a best pick the bot couldn't afford
+    /// cast nothing at all, even with a cheaper spell ready that fit.
+    /// </summary>
+    protected SpellData ChooseSpell(Predicate<SpellData> canCast = null)
     {
         if (owner == null || owner.spellList == null || !HasTarget)
         {
@@ -1033,7 +1071,7 @@ public abstract class NpcAI : MonoBehaviour
                 continue;
             }
 
-            if (PlayerController.GetSpellInputLength(spell) <= 0)
+            if (PlayerController.GetSpellInputLength(spell) <= 0 || (canCast != null && !canCast(spell)))
             {
                 continue;
             }

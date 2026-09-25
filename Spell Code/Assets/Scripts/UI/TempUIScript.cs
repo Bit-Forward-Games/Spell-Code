@@ -307,8 +307,8 @@ public class TempUIScript : MonoBehaviour, ISelectHandler
 
             playerCodeMode[playerIndex].codeModes[0].ResetCodeModePromptPresentation();
             playerCodeMode[playerIndex].codeModes[1].ResetCodeModePromptPresentation();
-            playerCodeMode[playerIndex].codeModes[0].codeModeSelected = true;
-            playerCodeMode[playerIndex].codeModes[1].codeModeSelected = false;
+            playerCodeMode[playerIndex].codeModes[0].codeModeSelected = false;
+            playerCodeMode[playerIndex].codeModes[1].codeModeSelected = true;
             // A previously selected option deactivates its sibling after the close animation. On a
             // later lobby reset that inactive handler cannot run Update to restore the default, so
             // apply both visuals explicitly whenever this panel reopens.

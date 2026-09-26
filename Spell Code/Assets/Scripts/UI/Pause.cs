@@ -950,6 +950,18 @@ public class Pause : MonoBehaviour
  
     public void Pausing()
     {
+        // The confirmation window's No_Button is Inspector-wired straight to this method, because
+        // answering "No" from the pause menu means "put the pause menu back" -- OpenConfirmationWindow
+        // slid it off to y=-2000, so only a re-open animates it in again. When the window was opened
+        // from somewhere else (the Friends Lobby), there is no pause menu behind it to return to and
+        // running this would open one on top of that screen. Just dismiss the window instead.
+        if (!paused && IsConfirmationWindowOpen)
+        {
+            SFX_Manager.Instance?.PlayMenuSound("Negative Select");
+            CloseConfirmationWindow();
+            return;
+        }
+
         if(spells || options || controls)
         {
             //play the pause sfx
@@ -1015,23 +1027,53 @@ public class Pause : MonoBehaviour
 
     private int window;
 
+    // Set only when the window is opened by something that is NOT the pause menu (currently the
+    // Friends Lobby's "leave the party?" prompt). It takes priority over the numbered windows, so
+    // the pause menu's Inspector-wired OpenConfirmationWindow(0)/(1) keep behaving exactly as before.
+    private System.Action confirmationConfirmed;
+
+    public bool IsConfirmationWindowOpen =>
+        confirmationWindow != null && confirmationWindow.gameObject.activeSelf;
+
     public void OpenConfirmationWindow(int windowIndex)
     {
+        confirmationConfirmed = null;
         confirmationWindow.gameObject.SetActive(true);
         RectTransform confirmationWindowRect = confirmationWindow.GetComponent<RectTransform>();
         // pausemenu.SetActive(false);
         confirmationWindowRect.anchoredPosition = new Vector2(-50.044f, 2000f);
         confirmationWindowRect.DOAnchorPos(new Vector2(-50.044f, -78.3f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
-        pausemenu.GetComponent<RectTransform>().DOAnchorPos(new Vector2(-50.044f, -2000f), 0.4f).SetEase(Ease.InQuad).SetUpdate(true);
+        // Only slide the pause menu out of the way when it is the thing actually on screen. Opened
+        // from the Friends Lobby there is no pause menu behind this window to move.
+        if (paused)
+        {
+            pausemenu.GetComponent<RectTransform>().DOAnchorPos(new Vector2(-50.044f, -2000f), 0.4f).SetEase(Ease.InQuad).SetUpdate(true);
+        }
         StartCoroutine(SelectFirst(_confirmationMenuFirst));
 
         window = windowIndex;
     }
 
+    /// <summary>
+    /// Opens the same confirmation window for a caller outside the pause menu. Confirming runs
+    /// <paramref name="onConfirmed"/> instead of the numbered ReturnToLobby/QuitGame branches;
+    /// cancelling just closes the window and leaves that caller's screen untouched.
+    /// </summary>
+    public void OpenConfirmationWindowFor(System.Action onConfirmed)
+    {
+        OpenConfirmationWindow(-1);
+        confirmationConfirmed = onConfirmed;
+    }
+
     public void CloseConfirmationWindow()
     {
+        confirmationConfirmed = null;
         StartCoroutine(CloseConfirmationWindowAnimation());
-        pausemenu.SetActive(true);
+        // Same reason as above: putting the pause menu back is only correct if we came from it.
+        if (paused)
+        {
+            pausemenu.SetActive(true);
+        }
     }
 
     public IEnumerator CloseConfirmationWindowAnimation()
@@ -1040,13 +1082,63 @@ public class Pause : MonoBehaviour
         // pausemenu.SetActive(false);
         confirmationWindowRect.anchoredPosition = new Vector2(confirmationWindowRect.anchoredPosition.x, confirmationWindowRect.anchoredPosition.y);
         confirmationWindowRect.DOAnchorPos(new Vector2(-50.044f, -2000f), 0.35f).SetEase(Ease.OutBack).SetUpdate(true);
-        yield return new WaitForSeconds(0.4f);
+        // Realtime, because every caller holds timeScale at 0 while this window is up (offline pause
+        // via SetMenuTimeScale, the Friends Lobby via OnlineMenuPanel.MaintainFreeze). A scaled wait
+        // never resumes there, so the window stayed active off-screen until Resume() hid it.
+        yield return new WaitForSecondsRealtime(0.4f);
         confirmationWindow.gameObject.SetActive(false);
     }
-    
+
+    /// <summary>
+    /// Drops the window with no slide-out, for when the screen that opened it is being torn down
+    /// and the animation would play over whatever replaces it.
+    /// </summary>
+    public void CancelConfirmationWindowImmediate()
+    {
+        confirmationConfirmed = null;
+        if (confirmationWindow != null)
+        {
+            confirmationWindow.gameObject.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// Keeps focus inside the confirmation window for callers that run their own focus upkeep.
+    /// PartyLobbyPanel.MaintainFocus would otherwise drag selection back to the lobby every frame,
+    /// because this window is not a child of that panel.
+    /// </summary>
+    public void MaintainConfirmationFocus()
+    {
+        EventSystem eventSystem = EventSystem.current;
+        if (!IsConfirmationWindowOpen || eventSystem == null)
+        {
+            return;
+        }
+
+        GameObject current = eventSystem.currentSelectedGameObject;
+        if (current != null
+            && current.activeInHierarchy
+            && current.transform.IsChildOf(confirmationWindow.transform))
+        {
+            return;
+        }
+
+        if (_confirmationMenuFirst != null && _confirmationMenuFirst.activeInHierarchy)
+        {
+            eventSystem.SetSelectedGameObject(_confirmationMenuFirst);
+        }
+    }
+
     public void PressedConfirm()
     {
+        System.Action pending = confirmationConfirmed;
         CloseConfirmationWindow();
+
+        if (pending != null)
+        {
+            pending();
+            return;
+        }
 
         if (window == 0)
             ReturnToLobby();

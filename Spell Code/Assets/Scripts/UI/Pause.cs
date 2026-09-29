@@ -1063,11 +1063,37 @@ public class Pause : MonoBehaviour
     {
         OpenConfirmationWindow(-1);
         confirmationConfirmed = onConfirmed;
+
+        // The pause menu has darkPanel up before it ever opens this window; a caller outside the
+        // pause menu got no backdrop, so the prompt appeared over a live-looking screen and players
+        // missed it. Raise the same panel. It is the first child of pfb_GameManager/Pause, drawn
+        // just before Confirmation Panel, so it lands behind the prompt and over whatever opened it.
+        if (!paused && darkPanel != null)
+        {
+            darkPanel.SetActive(true);
+            confirmationOwnsDarkPanel = true;
+        }
+    }
+
+    // True while darkPanel is up on behalf of a confirmation opened from OUTSIDE the pause menu.
+    // Pausing() raises the same panel for itself and then calls CloseConfirmationWindow(), so the
+    // close paths must never lower it unless the prompt is the one that raised it.
+    private bool confirmationOwnsDarkPanel;
+
+    private void LowerConfirmationDarkPanel()
+    {
+        // Also skipped while paused: that backdrop belongs to the pause menu now, whatever the flag says.
+        if (confirmationOwnsDarkPanel && !paused && darkPanel != null)
+        {
+            darkPanel.SetActive(false);
+        }
+        confirmationOwnsDarkPanel = false;
     }
 
     public void CloseConfirmationWindow()
     {
         confirmationConfirmed = null;
+        LowerConfirmationDarkPanel();
         StartCoroutine(CloseConfirmationWindowAnimation());
         // Same reason as above: putting the pause menu back is only correct if we came from it.
         if (paused)
@@ -1096,6 +1122,7 @@ public class Pause : MonoBehaviour
     public void CancelConfirmationWindowImmediate()
     {
         confirmationConfirmed = null;
+        LowerConfirmationDarkPanel();
         if (confirmationWindow != null)
         {
             confirmationWindow.gameObject.SetActive(false);

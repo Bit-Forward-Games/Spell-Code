@@ -41,7 +41,7 @@ public class Codemehameha : SpellData
             activateFlag = false;
             // owner.basicSpawnOverride = spellName;
             // basicEnhanceActive = true;
-            SetBasicEnhancement(spellName + chargeLevel);
+            SetBasicEnhancement(spellName);
             cooldownCounter = owner.vibeCoding?(int)(cooldown+((spellInput & 0xFu)*30)):cooldown;
         }
     }
@@ -54,21 +54,21 @@ public class Codemehameha : SpellData
                 chargeLevel = (byte)Mathf.Min(chargeLevel + 1, 3);
                 switch (chargeLevel)
                 {
-                    case 0://anvil
+                    case 1://anvil
                         owner.SpawnToast("Level 1", GameManager.colors["white"]);
 
                         //play the anvil display sound
                         //SFX_Manager.Instance.PlaySpellcodeSound("Armory Of Hephaestus Anvil Display");
                         
                         break;
-                    case 1://spear
+                    case 2://spear
                         owner.SpawnToast("Level 2", GameManager.colors["white"]);
 
                         //play the anvil display sound
                         //SFX_Manager.Instance.PlaySpellcodeSound("Armory Of Hephaestus Spear Display");
 
                         break;
-                    case 2://hammer
+                    case 3://hammer
                         owner.SpawnToast("Level 3", GameManager.colors["white"]);
 
                         //play the anvil display sound
@@ -84,7 +84,7 @@ public class Codemehameha : SpellData
             
             if (owner.basicSpawnOverride == spellName && basicEnhanceActive)
                 {
-                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[chargeLevel+1].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
+                    ProjectileManager.Instance.SpawnProjectile(projectileInstances[chargeLevel].GetComponent<BaseProjectile>(), owner.facingRight, new FixedVec2(Fixed.FromInt(spawnOffsetX), Fixed.FromInt(spawnOffsetY)));
                     chargeLevel = 0;
                     basicEnhanceActive = false;
                 }

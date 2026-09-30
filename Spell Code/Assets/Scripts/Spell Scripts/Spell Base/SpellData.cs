@@ -163,7 +163,7 @@ public abstract class SpellData : MonoBehaviour
         }
     }
 
-    public virtual void SetBasicEnhancement()
+    public virtual void SetBasicEnhancement( string basicEnhanceStringOverride = "")
     {
         
         List<SpellData> sortedSpellList = new List<SpellData>();
@@ -181,7 +181,7 @@ public abstract class SpellData : MonoBehaviour
             }
         }
 
-        owner.basicSpawnOverride = spellName;
+        owner.basicSpawnOverride = basicEnhanceStringOverride != ""? basicEnhanceStringOverride : spellName;
         basicEnhanceActive = true;
 
     }

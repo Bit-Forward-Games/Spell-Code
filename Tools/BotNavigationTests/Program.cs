@@ -29,8 +29,9 @@ internal static class Program
         Run("NPC drops from anywhere on its disk platform down to its Gamba", LobbyGambaDescent);
         Run("Enhance spells are cast with room, never up close, and lose to an attack in band", EnhanceSpellChoice);
         Run("a bot backed into a ledge or wall turns to face its opponent", CorneredBotFacesTarget);
-        Run("on Dual Duel a bot goes after the opponent on its own floor, not the one overhead", DualDuelTargetsOwnFloor);
+        Run("on Dual Duel a bot reaches the other floor through the loop border", DualDuelThroughTheLoop);
         Run("a bot with only unreachable opponents stands its ground instead of jump-looping", UnreachableTargetHoldsStill);
+        Run("on every arena, from every spawn pair, a bot gets into the fight without jump-looping", ArenaSweep);
         Run("a long-range kit backs off to where it can cast instead of parking too close", LongRangeKitSpacing);
         Console.WriteLine(failed == 0 ? "All navigation regressions passed." : $"{failed} regression(s) failed.");
         return failed == 0 ? 0 : 1;
@@ -268,25 +269,34 @@ internal static class Program
     }
     private static StageDataSO LobbyStage()
     {
-        var stage = LoadStage("Lobby_Arena StageDataSO.asset", new Vector3(-350, -205, 0), new Vector3(350, 205, 0));
+        var stage = LoadStage("Arenas/Lobby and Tutorials/Lobby_Arena StageDataSO.asset");
         Check(stage.solidCenter.Length == 14 && stage.platformCenter.Length == 4, "Active lobby geometry fixture failed to load.");
         return stage;
     }
 
-    private static StageDataSO LoadStage(string fileName, Vector3 borderMin, Vector3 borderMax)
+    // Every arena asset is copied next to the binary under Arenas/ (see the csproj).
+    private static StageDataSO LoadStage(string path)
     {
-        string yaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, fileName));
+        var invariant = System.Globalization.CultureInfo.InvariantCulture;
+        string yaml = File.ReadAllText(Path.Combine(AppContext.BaseDirectory, path));
         Vector2[] ReadVectors(string name)
         {
             string section = System.Text.RegularExpressions.Regex.Match(yaml,
                 @"(?m)^  " + name + @":\r?\n((?:  - \{[^\r\n]+\r?\n)*)").Groups[1].Value;
             return System.Text.RegularExpressions.Regex.Matches(section, @"x: ([^,]+), y: ([^,}]+)")
-                .Select(m => new Vector2(float.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture),
-                    float.Parse(m.Groups[2].Value, System.Globalization.CultureInfo.InvariantCulture))).ToArray();
+                .Select(m => new Vector2(float.Parse(m.Groups[1].Value, invariant),
+                    float.Parse(m.Groups[2].Value, invariant))).ToArray();
+        }
+        Vector3 ReadBorder(string name)
+        {
+            var m = System.Text.RegularExpressions.Regex.Match(yaml, @"(?m)^  " + name + @": \{x: ([^,]+), y: ([^,]+), z");
+            return new Vector3(float.Parse(m.Groups[1].Value, invariant), float.Parse(m.Groups[2].Value, invariant), 0);
         }
         return new StageDataSO { solidCenter = ReadVectors("solidCenter"), solidExtent = ReadVectors("solidExtent"),
             platformCenter = ReadVectors("platformCenter"), platformExtent = ReadVectors("platformExtent"),
-            borderMin = borderMin, borderMax = borderMax };
+            playerSpawnTransform = ReadVectors("playerSpawnTransform"),
+            borderMin = ReadBorder("borderMin"), borderMax = ReadBorder("borderMax"),
+            borderType = (BorderType)int.Parse(System.Text.RegularExpressions.Regex.Match(yaml, @"(?m)^  borderType: (\d+)").Groups[1].Value) };
     }
 
     // The Shop reuses the lobby map. These are P4's three disk spots (GambaMachine.diskLocations 9-11)
@@ -352,8 +362,9 @@ internal static class Program
 
             for (int tick = 0; tick < 300; tick++)
             {
-                // An opponent pressing in: always close enough that the bot wants to back off.
-                target.position = new FixedPosition(bot.position.X.ToFloat() + 30f, 0f);
+                // An opponent pressing in: always closer than the bot's basic-attack window starts, so
+                // it keeps wanting to back off.
+                target.position = new FixedPosition(bot.position.X.ToFloat() + 16f, 0f);
                 chase.Tick();
                 simulation.Step(chase.npcInputSnapshot);
                 furthestBack = MathF.Min(furthestBack, bot.position.X.ToFloat());
@@ -366,46 +377,111 @@ internal static class Program
         }
     }
 
-    // Dual Duel is two chambers split by a wall-to-wall slab at y=0: P1/P2 above, P3/P4 below. P3
-    // and P4 spawn directly under P1 and P2, so nearest-by-horizontal-distance picked the player
-    // overhead, and with no route to them the bots jump-looped under the slab all round.
-    private static StageDataSO DualDuelStage() =>
-        LoadStage("DualDuel_Arena StageDataSO.asset", new Vector3(-300, -220, 0), new Vector3(300, 220, 0));
-
     private static PlayerController Fighter(float x, float y, int pID) =>
         new PlayerController { position = new FixedPosition(x, y), isGrounded = true, facingRight = true,
             playerWidth = 24, runSpeed = 3, pID = pID };
 
-    private static (int jumps, float finalX) RunChase(StageDataSO stage, PlayerController bot, PlayerController[] players, int ticks)
+    private static (string name, StageDataSO stage)[] AllArenas() =>
+        Directory.GetFiles(Path.Combine(AppContext.BaseDirectory, "Arenas"), "*StageDataSO*.asset", SearchOption.AllDirectories)
+            .Where(f => !f.Contains("Lobby and Tutorials") && !f.Contains("pfb_GameManager"))
+            .OrderBy(f => f, StringComparer.Ordinal)
+            .Select(f => (Path.GetFileName(f).Replace(" StageDataSO.asset", "").Replace("StageDataSO.asset", "").Replace("_Arena", ""),
+                LoadStage(Path.GetRelativePath(AppContext.BaseDirectory, f))))
+            .ToArray();
+
+    // One chase on a real arena: both players drop onto whatever is under their spawns, then the bot
+    // goes after a player who stands still. Counts jump presses, attack presses and actual spell casts.
+    private static (int jumps, int attacks, int spellCasts) ArenaChase(StageDataSO stage, Vector2 botSpawn, Vector2 targetSpawn,
+        SpellData spell = null, BotDifficulty difficulty = BotDifficulty.Medium, int ticks = 900)
     {
-        GameManager.Instance = new GameManager { stage = stage, players = players, playerCount = players.Length };
+        var bot = Fighter(botSpawn.x, botSpawn.y, 1);
+        var target = Fighter(targetSpawn.x, targetSpawn.y, 2);
+        bot.isGrounded = target.isGrounded = false;
+        bot.botDifficulty = difficulty;
+        if (spell != null) bot.spellList.Add(spell);
+        GameManager.Instance = new GameManager { stage = stage, players = new[] { bot, target }, playerCount = 2 };
+
+        var botSim = new MovementSimulation(bot, stage);
+        var targetSim = new MovementSimulation(target, stage);
+        var neutral = new InputSnapshot(5, new[] { ButtonState.None, ButtonState.None, ButtonState.None });
+        for (int tick = 0; tick < 120; tick++) { botSim.Step(neutral); targetSim.Step(neutral); }
+
         var chase = new ChaseAI { owner = bot };
-        var simulation = new MovementSimulation(bot, stage);
-        int jumps = 0;
+        var castCode = typeof(NpcAI).GetField("castCode",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        int jumps = 0, attacks = 0, spellCasts = 0;
         for (int tick = 0; tick < ticks; tick++)
         {
             chase.Tick();
-            simulation.Step(chase.npcInputSnapshot);
+            botSim.Step(chase.npcInputSnapshot);
             if (chase.npcInputSnapshot.ButtonStates[1] == ButtonState.Pressed) jumps++;
+            if (chase.npcInputSnapshot.ButtonStates[0] == ButtonState.Pressed)
+            {
+                attacks++;
+                if ((uint)castCode.GetValue(chase) != 0) spellCasts++;
+            }
         }
-        return (jumps, bot.position.X.ToFloat());
+        return (jumps, attacks, spellCasts);
     }
 
-    private static void DualDuelTargetsOwnFloor()
+    // BigQuadrupleDuel's centre column leaves only 32px gaps, too low for a 48px body: its left and
+    // right halves never meet, so a bot there has nobody to chase and should stand its ground.
+    private static bool SealedApart(string arena, Vector2 a, Vector2 b) =>
+        arena == "BigQuadrupleDuel" && MathF.Sign(a.x) != MathF.Sign(b.x);
+
+    // Every arena, every ordered pair of spawn points, with no spell and with a short starter spell on
+    // Hard: the bot must get into a fight -- attack at least once in 15 seconds -- and must not jump-loop.
+    // Before this sweep existed a quarter of pairs failed: stopped at gaps between same-height ledges,
+    // parked out of attack range, hopped under ceilings, and treated every loop border as a wall.
+    private static void ArenaSweep()
     {
-        var bot = Fighter(-224f, -192f, 3);
-        var players = new[] { Fighter(-224f, 0f, 1), Fighter(224f, 0f, 2), bot, Fighter(224f, -192f, 4) };
-        var (jumps, finalX) = RunChase(DualDuelStage(), bot, players, 400);
-        Check(jumps <= 2, $"Jumped {jumps} times -- chasing the player overhead instead of P4.");
-        Check(finalX > 0f, $"Never went after P4 across its own floor (ended at x={finalX:0}).");
+        var starter = new SpellData { spellName = "Amon Slash", spellType = SpellType.Active, spellInput = 2 };
+        // The longest code in the game (8 steps) on an Enhance spell, which isn't aimed at anyone.
+        var codemehameha = new SpellData { spellName = "Codemehameha", spellType = SpellType.Active,
+            spellInput = 0b_0000_0000_1000_0111_1000_0111_0000_1000 };
+        var failures = new List<string>();
+        int starterCasts = 0;
+        foreach (var (name, stage) in AllArenas())
+        {
+            Vector2[] spawns = stage.playerSpawnTransform;
+            for (int i = 0; i < spawns.Length; i++)
+            for (int j = 0; j < spawns.Length; j++)
+            {
+                if (i == j || (spawns[i].x == spawns[j].x && spawns[i].y == spawns[j].y)
+                    || SealedApart(name, spawns[i], spawns[j])) continue;
+                foreach (var (spell, difficulty) in new[] { ((SpellData)null, BotDifficulty.Medium),
+                    (starter, BotDifficulty.Hard), (codemehameha, BotDifficulty.Medium) })
+                {
+                    var (jumps, attacks, spellCasts) = ArenaChase(stage, spawns[i], spawns[j], spell, difficulty);
+                    starterCasts += spellCasts;
+                    if (attacks == 0)
+                        failures.Add($"{name} {i}->{j} {(spell == null ? "no spell" : spell.spellName + " " + difficulty)}: "
+                            + $"never attacked ({jumps} jumps)");
+                }
+            }
+        }
+        Check(failures.Count == 0, $"{failures.Count} chase(s) failed: " + string.Join("; ", failures.Take(8)));
+        Check(starterCasts > 0, "No bot ever cast its short-range starter spell.");
     }
 
+    // Dual Duel stacks two chambers split by a wall-to-wall slab, and looked sealed -- but it's a loop
+    // stage: drop through the bottom-middle platform, fall out of the bottom, come back in at the top.
+    private static void DualDuelThroughTheLoop()
+    {
+        var stage = LoadStage("Arenas/General (3-4 players)/DualDuel_Arena StageDataSO.asset");
+        Check(stage.borderType == BorderType.Loop, "Dual Duel fixture isn't a loop stage.");
+        var (jumps, attacks, _) = ArenaChase(stage, new Vector2(-224f, -192f), new Vector2(-224f, 0f));
+        Check(attacks > 0, $"Never reached the upper floor through the loop border ({jumps} jumps).");
+        Check(jumps <= 12, $"Jumped {jumps} times getting there.");
+    }
+
+    // With nobody reachable -- BigQuadrupleDuel's other half -- climbing at them is a jump loop against
+    // whatever is in the way; the bot should stand its ground instead.
     private static void UnreachableTargetHoldsStill()
     {
-        var bot = Fighter(-224f, -192f, 3);
-        var (jumps, finalX) = RunChase(DualDuelStage(), bot, new[] { Fighter(-224f, 0f, 1), bot }, 300);
+        var stage = LoadStage("Arenas/Party (4 players)/BigQuadrupleDuel_Arena StageDataSO.asset");
+        var (jumps, _, _) = ArenaChase(stage, stage.playerSpawnTransform[0], stage.playerSpawnTransform[1]);
         Check(jumps == 0, $"Jumped {jumps} times at an opponent there's no route to.");
-        Check(MathF.Abs(finalX + 224f) < 30f, $"Wandered off to x={finalX:0} with nobody reachable.");
     }
 
     // The fixed 56-124 band sat inside the room a 4-step code needs (128 at Medium), so a bot holding

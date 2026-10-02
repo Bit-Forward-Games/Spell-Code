@@ -31,7 +31,7 @@ public enum SpellRole
 /// <summary>
 /// AI-only tactical hints about each active spell, kept deliberately out of SpellData: none of this
 /// affects gameplay, and one table is far easier to review and tune than the same facts scattered
-/// across 38 constructors.
+/// across 39 constructors.
 ///
 /// Values are taken from each spell's own player-facing description, which already states range in
 /// the author's words for about half the list and describes the shape clearly for the rest. A spell
@@ -98,6 +98,8 @@ public static class SpellTactics
         { "Cash Out",             new Profile(SpellRange.Short,  SpellRole.Enhance) },
         { "Demon Trigger",        new Profile(SpellRange.Short,  SpellRole.Enhance) },
         { "Tele-Frag Prism",      new Profile(SpellRange.Short,  SpellRole.Enhance) },
+        // Charges the next basic attack into a beam (up to three casts deep); the beam is the attack.
+        { "Codemehameha",         new Profile(SpellRange.Medium, SpellRole.Enhance) },
 
         // --- Zone: placed now, pays off when the opponent walks into it ---
         { "Gift Of Prometheus",   new Profile(SpellRange.Short,  SpellRole.Zone) },

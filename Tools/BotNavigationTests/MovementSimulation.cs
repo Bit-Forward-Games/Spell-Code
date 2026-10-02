@@ -79,6 +79,25 @@ internal sealed class MovementSimulation
                 if (y >= top && nextY <= top && v <= 0f) { nextY = top; v = 0f; landing = oneWay = true; }
             }
         }
+        // Borders, as PlayerController's #region Borders applies them after collision. Loop stages
+        // snap to the opposite border; the rest of the border types either clamp or don't matter
+        // to movement.
+        if (stage.borderMax.x > stage.borderMin.x)
+        {
+            if (stage.borderType == BorderType.Collision)
+            {
+                nextX = Math.Clamp(nextX, stage.borderMin.x, stage.borderMax.x);
+                if (nextY < stage.borderMin.y) { nextY = stage.borderMin.y; v = 0f; landing = true; }
+                nextY = Math.Min(nextY, stage.borderMax.y);
+            }
+            else if (stage.borderType == BorderType.Loop)
+            {
+                if (nextX > stage.borderMax.x) nextX = stage.borderMin.x;
+                else if (nextX < stage.borderMin.x) nextX = stage.borderMax.x;
+                if (nextY > stage.borderMax.y) nextY = stage.borderMin.y;
+                else if (nextY < stage.borderMin.y) nextY = stage.borderMax.y;
+            }
+        }
         player.position = new FixedPosition(nextX, nextY);
         player.hSpd = h;
         player.vSpd = v;

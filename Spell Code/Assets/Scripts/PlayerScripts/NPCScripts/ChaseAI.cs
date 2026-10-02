@@ -12,9 +12,16 @@ using UnityEngine.SceneManagement;
 public class ChaseAI : NpcAI
 {
     // Distances are in the same units as the stage AABBs and hurtboxes, which are pixels: a
-    // character is roughly 20 wide and 48 tall, so this band sits a few body-widths out.
-    private const float PreferredDistance = 90f;
+    // character is roughly 20 wide and 48 tall. BandWidth is the most slack either side of the
+    // distance the bot holds; a narrow cast window gets less.
     private const float BandWidth = 34f;
+
+    // Closest the bot holds when only its basic attack is ready: near enough to hit, not stacked.
+    private const float BasicAttackNear = 24f;
+
+    // The thinnest slice of a spell's reach it will hold still for, so a narrow window is still
+    // wider than the few pixels the bot overshoots by when it stops.
+    private const float MinCastWindow = 40f;
 
     // Height separation at which reaching the target's level takes priority over combat spacing.
     private const float ClimbThreshold = 32f;
@@ -50,6 +57,10 @@ public class ChaseAI : NpcAI
     private const float GambaHeightTolerance = 24f;
 
     private int framesSinceAttempt;
+
+    // Its spell window is behind a ledge, wall or loop border it can't back through, so it holds
+    // basic-attack range instead of trying to back off to the window. See NPCUpdate.
+    private bool cornered;
 
     // How hard a fat bounty pulls a RAM Rush bot off the nearest opponent, per point of bounty
     // against one unit of distance. Bounties run to the hundreds, so this is deliberately small.
@@ -176,10 +187,10 @@ public class ChaseAI : NpcAI
             return;
         }
 
-        // Only someone it can't get to is left -- its own floor of Dual Duel while the opponent there
-        // respawns, say. Climbing toward them is a jump loop under the ceiling, so stand its ground
-        // until someone reachable turns up. Not even a turn to face them: often they're straight
-        // overhead, where facing flips with every pixel they move.
+        // Only someone it can't get to is left -- behind a wall the arena seals off, say. Climbing
+        // toward them is a jump loop against whatever is in the way, so stand its ground until
+        // someone reachable turns up. Not even a turn to face them: often they're straight overhead,
+        // where facing flips with every pixel they move.
         if (!TargetReachable)
         {
             StopNavigation();
@@ -203,19 +214,43 @@ public class ChaseAI : NpcAI
             return;
         }
 
+        // Cornered lasts until the target gives the bot room to cast again (or it has nothing to cast).
+        if (cornered && (!ReadySpellWindow(out float castFrom, out _) || TargetDistanceX >= castFrom))
+        {
+            cornered = false;
+        }
+
         int desired = ChooseDirection();
         int away = TargetOffsetX > 0f ? 4 : 6;
+        int toward = TargetOffsetX > 0f ? 6 : 4;
+
+        // Closing in, but not by walking straight at them: a gap, a wall, or a way round that starts
+        // off in the other direction (Loony's out through the side border). Follow the route
+        // planner instead. Plain walking stopped dead at the edge of every gap between same-height
+        // ledges, hopped in place against every wall, and undid every detour one step in.
+        Vector2 targetPosition = new Vector2(owner.position.X.ToFloat() + TargetOffsetX,
+            owner.position.Y.ToFloat() + TargetOffsetY);
+        if (IsGrounded && desired == toward
+            && (!IsStepSafe(toward) || WallAhead(toward) || !RouteStartsTowardTarget(targetPosition)))
+        {
+            TravelToward(targetPosition, 12f, ClimbThreshold);
+            return;
+        }
+
+        // A retreat only backs off along the level the bot is on. At a wall it grinds or hops with
+        // its back to the target; off a platform's edge it drops below the target, climbs back,
+        // lands too close and backs off the edge again; through a loop border it lands on the far
+        // side and walks straight back. Anywhere it can't, it's cornered: stand and fight from here.
+        // Before the general ledge check below, which would otherwise swallow the retreat first.
+        if (desired == away && !CanBackOff(away))
+        {
+            desired = 5;
+            cornered = true;
+        }
 
         // Ledge safety applies only on the ground. Airborne, the same step is how the bot gets back
         // to the stage, so refusing it there would strand anything that ever leaves the floor.
         if (IsGrounded && desired != 5 && !IsStepSafe(desired))
-        {
-            desired = 5;
-        }
-
-        // A retreat also ends at a wall: pressing on only grinds into it, or hops against it, with
-        // the bot's back to its target.
-        if (desired == away && WallAhead(away))
         {
             desired = 5;
         }
@@ -478,54 +513,92 @@ public class ChaseAI : NpcAI
             required *= 1.6f;
         }
 
-        return required;
+        // Never more room than the spell has reach. A short spell's code outweighed its whole band
+        // -- two steps at Hard wanted 105, and the band ends at 90 -- so no distance could ever cast
+        // it, which covers every starter bar Skillshot Slash. Keep a usable slice at the far edge.
+        return Mathf.Min(required, SpellReach(spell).y - MinCastWindow);
     }
 
     /// <summary>
-    /// The gap to hold: where the nearest-reaching spell the bot has ready both reaches and can be
-    /// afforded. A fixed band used to park every bot 56-124 out whatever it held, which is inside
-    /// the room most codes need -- so a long-range or long-code kit stood there casting nothing.
-    /// Reading only READY spells makes it breathe: when the short spell goes on cooldown, the bot
-    /// drifts out to where the long one works.
+    /// Nearest (x) and furthest (y) distance a spell is worth casting from, read the same way
+    /// ScoreSpell reads its band.
     /// </summary>
-    private float PreferredDistanceForKit()
+    private static Vector2 SpellReach(SpellData spell)
     {
-        float preferred = float.MaxValue;
+        SpellTactics.Profile profile = SpellTactics.For(spell);
+
+        // Enhance isn't aimed, so its band means nothing; it just wants the space ScoreSpell asks for.
+        if (profile.Role == SpellRole.Enhance)
+        {
+            return new Vector2(SpellTactics.IdealDistance(SpellRange.Medium), MaxCastRange);
+        }
+
+        float ideal = SpellTactics.IdealDistance(profile.Range);
+        float tolerance = SpellTactics.BandTolerance(profile.Range);
+        float near = ideal - tolerance;
+        if (profile.Role == SpellRole.Zone)
+        {
+            near = Mathf.Max(near, ideal * 0.6f);
+        }
+
+        return new Vector2(near, Mathf.Min(ideal + tolerance, MaxCastRange));
+    }
+
+    /// <summary>
+    /// The window to hold, as a centre and a half-width: where the ready spell that works closest in
+    /// both reaches and can be afforded. With nothing ready, the basic attack's reach.
+    ///
+    /// Both halves matter. A fixed 56-124 band sat inside the room most codes need, so long kits
+    /// cast nothing; and its top end sat past the basic attack's 110, so a bot with nothing castable
+    /// parked there doing nothing. Reading only READY spells also makes it breathe: when the short
+    /// spell goes on cooldown, the bot drifts out to where the long one works.
+    /// </summary>
+    private void SpacingForKit(out float preferred, out float halfBand)
+    {
+        // Cornered, the spell's window is out of reach behind it: fight at basic-attack range.
+        if (cornered || !ReadySpellWindow(out float windowNear, out float windowFar))
+        {
+            windowNear = BasicAttackNear;
+            windowFar = ThreatRange - 8f;
+        }
+
+        halfBand = Mathf.Min(BandWidth, (windowFar - windowNear) * 0.5f);
+
+        // Sit at the far edge when a single mistake ends the match, in the middle otherwise.
+        preferred = IsOnLastStock() ? windowFar - halfBand : (windowNear + windowFar) * 0.5f;
+    }
+
+    /// <summary>
+    /// The range the bot can cast its closest-working ready spell from: its reach, and the room its
+    /// code needs. False when nothing castable is ready.
+    /// </summary>
+    private bool ReadySpellWindow(out float near, out float far)
+    {
+        near = 0f;
+        far = 0f;
+        bool found = false;
         for (int i = 0; owner.spellList != null && i < owner.spellList.Count; i++)
         {
             SpellData spell = owner.spellList[i];
             if (spell == null || spell.spellType != SpellType.Active || spell.cooldownCounter > 0
                 || PlayerController.GetSpellInputLength(spell) <= 0
-                || (owner.vibeCoding && i > 3))
+                || (owner.vibeCoding && i > 3)
+                || SpellTactics.For(spell).Role == SpellRole.Utility)
             {
                 continue;
             }
 
-            SpellTactics.Profile profile = SpellTactics.For(spell);
-            if (profile.Role == SpellRole.Utility)
+            Vector2 reach = SpellReach(spell);
+            float spellNear = Mathf.Max(reach.x, RoomNeededFor(spell));
+            if (!found || spellNear < near)
             {
-                continue;
+                near = spellNear;
+                far = reach.y;
+                found = true;
             }
-
-            // Enhance isn't aimed, so its band means nothing; it just wants the space ScoreSpell asks for.
-            float reach = SpellTactics.IdealDistance(profile.Role == SpellRole.Enhance ? SpellRange.Medium : profile.Range);
-            preferred = Mathf.Min(preferred, Mathf.Max(reach, RoomNeededFor(spell)));
         }
 
-        // Nothing ready: sit where the basic attack is in reach.
-        if (preferred == float.MaxValue)
-        {
-            preferred = PreferredDistance;
-        }
-
-        // Sit further out when a single mistake ends the match.
-        if (IsOnLastStock())
-        {
-            preferred *= 1.35f;
-        }
-
-        // Keep the whole band inside cast range, and its near edge off the target.
-        return Mathf.Clamp(preferred, BandWidth, MaxCastRange - BandWidth);
+        return found;
     }
 
     /// <summary>
@@ -537,14 +610,14 @@ public class ChaseAI : NpcAI
         int toward = TargetOffsetX > 0f ? 6 : 4;
         int away = TargetOffsetX > 0f ? 4 : 6;
 
-        float preferred = PreferredDistanceForKit();
+        SpacingForKit(out float preferred, out float halfBand);
 
-        if (TargetDistanceX > preferred + BandWidth)
+        if (TargetDistanceX > preferred + halfBand)
         {
             return toward;
         }
 
-        if (TargetDistanceX < preferred - BandWidth)
+        if (TargetDistanceX < preferred - halfBand)
         {
             return away;
         }

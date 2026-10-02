@@ -168,6 +168,34 @@ public abstract class NpcAI : MonoBehaviour
             owner.maxJumpCount);
     }
 
+    /// <summary>
+    /// True when the planner's way to target starts by simply walking toward it, so plain spacing
+    /// can close the distance. False when it starts with a jump, a drop, a detour away from them or
+    /// a trip out through a loop border -- walking straight at them there undoes the route, and a
+    /// bot that alternated the two just paced back and forth at the first ledge. Judged from the
+    /// ground; in mid-air, or with no route known, it defers to plain spacing.
+    /// </summary>
+    protected bool RouteStartsTowardTarget(Vector2 target)
+    {
+        StageDataSO stage = Stage;
+        if (owner == null || stage == null || !IsGrounded)
+        {
+            return true;
+        }
+
+        Vector2 position = new Vector2(owner.position.X.ToFloat(), owner.position.Y.ToFloat());
+        if (!platformNavigator.TryGetNextStep(stage, position, target,
+                owner.playerWidth.ToFloat() * 0.5f, owner.playerHeight.ToFloat(),
+                owner.jumpForce.ToFloat(), PlayerController.baseGravity, owner.runSpeed.ToFloat(),
+                owner.maxJumpCount, out BotPlatformNavigator.Step step))
+        {
+            return true;
+        }
+
+        return step.kind == BotPlatformNavigator.Kind.Walk && !step.wrapsX
+            && (step.landing.x - position.x) * (target.x - position.x) >= 0f;
+    }
+
     private void RefreshPerception()
     {
         Target = SelectTarget();
@@ -269,7 +297,16 @@ public abstract class NpcAI : MonoBehaviour
         if (stage != null && stage.borderMin != stage.borderMax
             && (stepX < stage.borderMin.x || stepX > stage.borderMax.x))
         {
-            return false;
+            // A loop border isn't an edge: the step comes out on the far side, so vet the ground
+            // there instead. Every other border type stops, kills or resets whoever crosses it.
+            if (stage.borderType != BorderType.Loop)
+            {
+                return false;
+            }
+
+            stepX += stepX > stage.borderMax.x
+                ? stage.borderMin.x - stage.borderMax.x
+                : stage.borderMax.x - stage.borderMin.x;
         }
 
         // The hazard being vetted is a fall, not an obstacle. A surface ABOVE the step is a step-up
@@ -359,6 +396,30 @@ public abstract class NpcAI : MonoBehaviour
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// True when a step this way keeps the owner on the level it stands on: ground at the same
+    /// height ahead, no wall in the way, no loop border to snap across. A retreat that fails this
+    /// isn't one -- dropping off the platform leaves the target overhead to climb back up to, and a
+    /// loop border lands the bot on the far side of the stage, where it walks straight back.
+    /// </summary>
+    protected bool CanBackOff(int numpadDirection, float lookAhead = 44f)
+    {
+        if (owner == null || !IsGrounded || numpadDirection % 3 == 2)
+        {
+            return false;
+        }
+
+        float stepX = owner.position.X.ToFloat() + (numpadDirection % 3 == 0 ? lookAhead : -lookAhead);
+        StageDataSO stage = Stage;
+        if (stage != null && stage.borderMin != stage.borderMax
+            && (stepX < stage.borderMin.x || stepX > stage.borderMax.x))
+        {
+            return false;
+        }
+
+        return !WallAhead(numpadDirection) && HasGroundAt(stepX, owner.position.Y.ToFloat(), 8f);
     }
 
     /// <summary>
@@ -480,18 +541,31 @@ public abstract class NpcAI : MonoBehaviour
                 owner.maxJumpCount, out navigationStep))
             {
                 TravelTowardX(target.x, arriveWithin);
-                if (target.y > position.y + heightTolerance || (IsFalling && OverAVoid()))
+                // Only climb as airborne recovery. On the ground with no route, jumping at whoever
+                // is overhead is a jump loop against whatever keeps the planner from finding one.
+                if (!IsGrounded && (target.y > position.y + heightTolerance || (IsFalling && OverAVoid())))
                 {
                     ClimbTo(Mathf.Max(target.y, position.y + heightTolerance + 1f), heightTolerance);
                 }
                 return;
             }
 
+            if (navigationStep.kind == BotPlatformNavigator.Kind.Walk && navigationStep.wrapsX)
+            {
+                // Walk out through the side border; the snap to the far side is the step itself.
+                float outward = navigationStep.takeoff.x > navigationStep.landing.x ? 16f : -16f;
+                SteerTowardX(navigationStep.takeoff.x + outward, 0f);
+                return;
+            }
+
             if (navigationStep.kind == BotPlatformNavigator.Kind.Walk)
             {
                 SteerTowardX(navigationStep.landing.x, arriveWithin);
-                // Some disks hover above their supporting floor rather than resting on it.
-                if (Mathf.Abs(target.x - position.x) <= arriveWithin)
+                // Some disks hover above their supporting floor rather than resting on it. Only that
+                // short way up, though: a player a floor or two overhead is reached by the route, and
+                // jumping at them from underneath is a hop loop against the ceiling between.
+                if (Mathf.Abs(target.x - position.x) <= arriveWithin
+                    && target.y - position.y <= owner.playerHeight.ToFloat())
                 {
                     ClimbTo(target.y, heightTolerance);
                 }
@@ -538,7 +612,10 @@ public abstract class NpcAI : MonoBehaviour
             Neutral();
             if (navigationStep.kind == BotPlatformNavigator.Kind.Drop)
             {
-                TryDropToward(navigationStep.landing.y, 0f);
+                // The planner has already decided this drop lands where it should, so don't re-vet
+                // the height: on a loop stage the landing can be ABOVE, reached by falling out of
+                // the bottom and back in at the top, and "is it below me" would refuse it forever.
+                TryDropToward(float.NegativeInfinity, 0f);
             }
             else if (navigationStep.kind == BotPlatformNavigator.Kind.Jump
                 && (State == PlayerState.Idle || State == PlayerState.Run) && CanJump
@@ -553,8 +630,11 @@ public abstract class NpcAI : MonoBehaviour
             return;
         }
 
+        // Bounded above as well: a fall that wrapped out of a loop stage's bottom comes back in far
+        // above the lip, and must steer for its landing from there, not for the lip.
         if (navigationStep.kind == BotPlatformNavigator.Kind.Fall
-            && position.y >= navigationStep.takeoff.y - 2f)
+            && position.y >= navigationStep.takeoff.y - 2f
+            && position.y <= navigationStep.takeoff.y + 2f)
         {
             // Keep moving off the lip through the zero-velocity airborne frame. Turning back
             // toward a lower target at once can put the body back on the source surface.
@@ -579,7 +659,7 @@ public abstract class NpcAI : MonoBehaviour
                 landingX = Mathf.Max(landingX, navigationStep.destinationRight + clearance);
             }
         }
-        SteerTowardX(landingX, 4f);
+        SteerTowardX(landingX, 4f, navigationStep.wrapsX);
 
         if (navigationJumpsRemaining > 0 && IsFalling && CanJump)
         {
@@ -600,9 +680,13 @@ public abstract class NpcAI : MonoBehaviour
         navigationJumpsRemaining = 0;
     }
 
-    private void SteerTowardX(float worldX, float tolerance)
+    private void SteerTowardX(float worldX, float tolerance, bool throughLoopBorder = false)
     {
-        float offset = worldX - owner.position.X.ToFloat();
+        // A route step that crosses a loop stage's side border has its landing on the far side of
+        // the screen; the plain offset would point back across the stage the long way.
+        float offset = throughLoopBorder
+            ? platformNavigator.WrapDeltaX(owner.position.X.ToFloat(), worldX)
+            : worldX - owner.position.X.ToFloat();
         float speed = owner.hSpd.ToFloat();
         // Neutral braking changes speed by one every three frames in the air, four on the
         // ground. Account for that drift when lining up a takeoff or a narrow landing.

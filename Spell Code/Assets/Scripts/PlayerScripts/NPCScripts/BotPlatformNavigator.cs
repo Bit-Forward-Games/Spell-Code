@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -20,6 +21,9 @@ public sealed class BotPlatformNavigator
         public int jumpsRequired;
         // Surface indices into the cached graph, so a jump can be re-checked from another takeoff.
         public int fromSurface, toSurface;
+        // Crosses a side border of a loop stage: the landing is on the far side of the screen, so
+        // steer out through the edge rather than back across the stage toward it.
+        public bool wrapsX;
     }
 
     private struct Box
@@ -53,6 +57,25 @@ public sealed class BotPlatformNavigator
     private int maxJumps;
     private bool boundedX, boundedY;
     private float minX, maxX, minY, maxY;
+    // BorderType.Loop: crossing a border snaps the body to the opposite one (PlayerController's
+    // #region Borders), so borders are passages rather than walls.
+    private bool looping;
+    private float loopMinX, loopMaxX, loopMinY, loopMaxY;
+
+    /// <summary>
+    /// Horizontal offset from one x to another, taking the short way round a loop stage. Only for
+    /// steering a step already flagged wrapsX; everything else stays in plain screen coordinates.
+    /// </summary>
+    public float WrapDeltaX(float fromX, float toX)
+    {
+        float delta = toX - fromX;
+        if (!looping)
+            return delta;
+        float width = loopMaxX - loopMinX;
+        if (delta > width * 0.5f) delta -= width;
+        else if (delta < -width * 0.5f) delta += width;
+        return delta;
+    }
 
     public bool TryGetNextStep(StageDataSO stage, Vector2 position, Vector2 target,
         float halfWidth, float height, float jumpSpeed, float gravity, float runSpeed,
@@ -147,7 +170,13 @@ public sealed class BotPlatformNavigator
             Surface s = surfaces[i];
             float dx = Mathf.Abs(point.x - Mathf.Clamp(point.x, s.left, s.right));
             float dy = point.y - s.y;
-            if (supporting && (Mathf.Abs(dy) > 12f || dx > halfWidth + 2f)) continue;
+            // Standing is judged the way the collision pass judges it: any overlap of the body with
+            // the block's real edges. Measuring from the inset walkable span instead lost a bot stood
+            // on a ledge's lip after a jump that only just made it, and with no start surface every
+            // later plan failed and the no-route fallback hopped on the spot.
+            if (supporting && (Mathf.Abs(dy) > 12f
+                || point.x + halfWidth <= s.physicalLeft || point.x - halfWidth >= s.physicalRight
+                || dx > halfWidth * 2f + 2f)) continue;
             // A pickup may float above the ground. Prefer the top underneath its feet.
             float score = dx * 2f + Mathf.Abs(dy) * (dy < -12f ? 4f : 1f);
             if (score < bestScore) { best = i; bestScore = score; }
@@ -159,8 +188,15 @@ public sealed class BotPlatformNavigator
     {
         solids.Clear();
         surfaces.Clear();
-        boundedX = stage.borderMax.x > stage.borderMin.x;
-        boundedY = stage.borderMax.y > stage.borderMin.y;
+        looping = stage.borderType == BorderType.Loop
+            && stage.borderMax.x > stage.borderMin.x && stage.borderMax.y > stage.borderMin.y;
+        loopMinX = stage.borderMin.x;
+        loopMaxX = stage.borderMax.x;
+        loopMinY = stage.borderMin.y;
+        loopMaxY = stage.borderMax.y;
+        // A loop border is a passage, not a wall: arcs wrap across it instead of being refused.
+        boundedX = !looping && stage.borderMax.x > stage.borderMin.x;
+        boundedY = !looping && stage.borderMax.y > stage.borderMin.y;
         minX = stage.borderMin.x + halfWidth + 2f;
         maxX = stage.borderMax.x - halfWidth - 2f;
         minY = stage.borderMin.y + 2f;
@@ -173,6 +209,7 @@ public sealed class BotPlatformNavigator
         }
         AddSurfaces(stage.solidCenter, stage.solidExtent, false);
         AddSurfaces(stage.platformCenter, stage.platformExtent, true);
+        MergeJoinedSurfaces();
         graph = new List<Edge>[surfaces.Count];
         distances = new float[surfaces.Count];
         visited = new bool[surfaces.Count];
@@ -198,7 +235,8 @@ public sealed class BotPlatformNavigator
         {
             float left = centers[i].x - extents[i].x, right = centers[i].x + extents[i].x;
             float y = centers[i].y + extents[i].y;
-            if (right <= left || (boundedY && (y < minY || y + height > maxY))) continue;
+            if (right <= left || (boundedY && (y < minY || y + height > maxY))
+                || (looping && (y < loopMinY || y > loopMaxY))) continue;
             // Small pillars can support a body wider than their top.
             float inset = Mathf.Min(halfWidth + 2f, (right - left) * 0.45f);
             var intervals = new List<Vector2> { new Vector2(left + inset, right - inset) };
@@ -219,9 +257,48 @@ public sealed class BotPlatformNavigator
             {
                 float a = boundedX ? Mathf.Max(minX, interval.x) : interval.x;
                 float b = boundedX ? Mathf.Min(maxX, interval.y) : interval.y;
+                // Past a loop border is off-screen: the body snaps across before it gets there.
+                if (looping)
+                {
+                    a = Mathf.Max(loopMinX, a);
+                    b = Mathf.Min(loopMaxX, b);
+                }
                 if (b < a) continue;
                 surfaces.Add(new Surface { left = a, right = b, y = y,
                     physicalLeft = left, physicalRight = right, oneWay = oneWay });
+            }
+        }
+    }
+
+    /// <summary>
+    /// Overlapping blocks make one floor, but each became its own surface -- so a bot and a target
+    /// on the same floor could count as on different surfaces and get routed round, on Loony out
+    /// through a loop border and straight back in. Join same-height, same-kind surfaces whose
+    /// standing room overlaps. Only overlap: merging across a gap the body can straddle hid gaps
+    /// the planner needs to see.
+    /// </summary>
+    private void MergeJoinedSurfaces()
+    {
+        bool merged = true;
+        while (merged)
+        {
+            merged = false;
+            for (int i = 0; i < surfaces.Count && !merged; i++)
+            {
+                for (int j = i + 1; j < surfaces.Count && !merged; j++)
+                {
+                    Surface a = surfaces[i], b = surfaces[j];
+                    if (a.oneWay != b.oneWay || Mathf.Abs(a.y - b.y) > 0.5f
+                        || b.left > a.right || a.left > b.right)
+                        continue;
+                    a.left = Mathf.Min(a.left, b.left);
+                    a.right = Mathf.Max(a.right, b.right);
+                    a.physicalLeft = Mathf.Min(a.physicalLeft, b.physicalLeft);
+                    a.physicalRight = Mathf.Max(a.physicalRight, b.physicalRight);
+                    surfaces[i] = a;
+                    surfaces.RemoveAt(j);
+                    merged = true;
+                }
             }
         }
     }
@@ -231,10 +308,13 @@ public sealed class BotPlatformNavigator
         Surface a = surfaces[from], b = surfaces[to];
         step = default(Step);
         duration = 0f;
-        float[] candidates = { Mathf.Clamp((b.left + b.right) * 0.5f, a.left, a.right),
+        // Several of these usually clamp to the same x; simulating the same arc twice buys nothing
+        // and the graph build is a one-off hitch at the start of every round, so drop repeats.
+        float[] candidates = new[] { Mathf.Clamp((b.left + b.right) * 0.5f, a.left, a.right),
             a.left, a.right, Mathf.Clamp(b.left, a.left, a.right), Mathf.Clamp(b.right, a.left, a.right),
             Mathf.Clamp(b.physicalLeft - halfWidth - 3f, a.left, a.right),
-            Mathf.Clamp(b.physicalRight + halfWidth + 3f, a.left, a.right) };
+            Mathf.Clamp(b.physicalRight + halfWidth + 3f, a.left, a.right) }
+            .Distinct().ToArray();
 
         if (Mathf.Abs(a.y - b.y) < 1f)
         {
@@ -246,18 +326,42 @@ public sealed class BotPlatformNavigator
                 duration = Mathf.Abs(end - x) / runSpeed;
                 return true;
             }
+
+            // A loop stage's floor running into one side border carries on from the other.
+            bool outRight = a.right >= loopMaxX - 0.5f && b.left <= loopMinX + 0.5f;
+            bool outLeft = a.left <= loopMinX + 0.5f && b.right >= loopMaxX - 0.5f;
+            if (looping && (outRight || outLeft))
+            {
+                step = MakeStep(Kind.Walk, new Vector2(outRight ? a.right : a.left, a.y),
+                    new Vector2(outRight ? b.left : b.right, b.y), from, to, 0);
+                step.wrapsX = true;
+                duration = 1f;
+                return true;
+            }
         }
-        if (b.y < a.y - 2f)
+
+        if (TryArcs(from, to, candidates, false, out step, out duration)) return true;
+        // A loop stage also connects the long way round: out through a side border and back in.
+        return looping && TryArcs(from, to, candidates, true, out step, out duration);
+    }
+
+    private bool TryArcs(int from, int to, float[] candidates, bool viaWrap, out Step step, out float duration)
+    {
+        Surface a = surfaces[from], b = surfaces[to];
+        step = default(Step);
+        duration = 0f;
+        // On a loop stage a fall can end anywhere: out of the bottom, back in at the top.
+        if (b.y < a.y - 2f || looping)
         {
             if (a.oneWay)
                 foreach (float x in candidates)
-                    if (TryArc(from, to, Kind.Drop, x, 0, out step, out duration)) return true;
+                    if (TryArc(from, to, Kind.Drop, x, 0, out step, out duration, viaWrap)) return true;
             // Walk off only when a simulated fall ends on a known lower surface.
             float[] edges = { a.physicalLeft - halfWidth - 3f, a.physicalRight + halfWidth + 3f };
             foreach (float x in edges)
                 if (CanWalk(Mathf.Clamp(x, a.left, a.right), x, a.y, true)
                     && !Supported(x, a.y)
-                    && TryArc(from, to, Kind.Fall, x, 0, out step, out duration)) return true;
+                    && TryArc(from, to, Kind.Fall, x, 0, out step, out duration, viaWrap)) return true;
         }
         for (int jumps = 1; jumps <= Mathf.Min(maxJumps, 4); jumps++)
         {
@@ -265,13 +369,13 @@ public sealed class BotPlatformNavigator
             float rise = jumpSpeed * (jumpSpeed + gravity) / (2f * gravity);
             if (jumpSpeed <= 0f || b.y - a.y > jumps * rise - (jumps - 1) * 10.5f * gravity - 2f) continue;
             foreach (float x in candidates)
-                if (TryArc(from, to, Kind.Jump, x, jumps, out step, out duration)) return true;
+                if (TryArc(from, to, Kind.Jump, x, jumps, out step, out duration, viaWrap)) return true;
         }
         return false;
     }
 
     private bool TryArc(int from, int to, Kind kind, float startX, int jumps,
-        out Step step, out float duration)
+        out Step step, out float duration, bool viaWrap = false)
     {
         Surface a = surfaces[from], b = surfaces[to];
         float landingInset = Mathf.Min(6f, (b.right - b.left) * 0.25f);
@@ -279,7 +383,7 @@ public sealed class BotPlatformNavigator
         float x = startX, y = a.y, velocity = kind == Kind.Jump ? jumpSpeed : 0f;
         int remaining = jumps - 1, releaseTicks = -1;
         float horizontalSpeed = 0f;
-        bool clearedLedge = false;
+        bool clearedLedge = false, crossedX = false;
         step = default(Step);
         duration = 0f;
         for (int tick = 0; tick < 240; tick++)
@@ -291,8 +395,9 @@ public sealed class BotPlatformNavigator
             }
             float nextY = y + velocity;
             float steerX = landingX;
-            // Ground loss initially has zero vertical speed. Do not steer back onto the lip.
-            if (kind == Kind.Fall && y > a.y - 2f) steerX = startX;
+            // Ground loss initially has zero vertical speed. Do not steer back onto the lip. (Bounded
+            // above too: a fall that wrapped out of the bottom comes back in far above the lip.)
+            if (kind == Kind.Fall && y > a.y - 2f && y <= a.y + 2f) steerX = startX;
             // Rising beside a solid ledge requires staying outside it until feet clear its top.
             if (y >= b.y + 2f) clearedLedge = true;
             if (!b.oneWay && !clearedLedge && kind == Kind.Jump)
@@ -300,7 +405,7 @@ public sealed class BotPlatformNavigator
                     : startX > b.physicalRight ? b.physicalRight + halfWidth + 3f : startX;
             // Match the input controller's air acceleration and neutral braking. A full-speed
             // ballistic arc would incorrectly accept narrow ledges reached from a standing jump.
-            float offset = steerX - x;
+            float offset = viaWrap ? WrapDeltaX(x, steerX) : steerX - x;
             float speed = Mathf.Abs(horizontalSpeed);
             bool braking = Mathf.Abs(offset) <= 4f
                 || (horizontalSpeed * offset > 0f && Mathf.Abs(offset) <= speed * (speed + 1f) * 1.5f);
@@ -319,6 +424,10 @@ public sealed class BotPlatformNavigator
                 if (nextX + halfWidth <= box.left || nextX - halfWidth >= box.right) continue;
                 if (x + halfWidth <= box.left + 0.5f) { nextX = box.left - halfWidth; horizontalSpeed = 0f; }
                 else if (x - halfWidth >= box.right - 0.5f) { nextX = box.right + halfWidth; horizontalSpeed = 0f; }
+                // Rising into a ceiling is a head bonk, not a failed jump: the collision pass stops
+                // the rise and the body drops back down. Refusing these arcs outright made any
+                // platform just under a ceiling -- Birdcage's top one -- look unreachable.
+                else if (velocity > 0f && y + height <= box.bottom + 0.5f) { nextY = box.bottom - height; velocity = 0f; }
                 else if (!(velocity <= 0f && y >= box.top - 0.5f)) return false;
             }
             if (velocity <= 0f)
@@ -336,12 +445,21 @@ public sealed class BotPlatformNavigator
                 {
                     if (landed != to || remaining > 0) return false;
                     step = MakeStep(kind, new Vector2(startX, a.y), new Vector2(landingX, b.y), from, to, jumps);
+                    step.wrapsX = crossedX;
                     duration = tick + 1;
                     return true;
                 }
             }
             x = nextX;
             y = nextY;
+            // Loop borders, as PlayerController applies them after collision: snap to the other side.
+            if (looping)
+            {
+                if (x > loopMaxX) { x = loopMinX; crossedX = true; }
+                else if (x < loopMinX) { x = loopMaxX; crossedX = true; }
+                if (y > loopMaxY) y = loopMinY;
+                else if (y < loopMinY) y = loopMaxY;
+            }
             velocity -= velocity > 0f ? gravity : gravity * 0.5f;
         }
         return false;
@@ -393,7 +511,7 @@ public sealed class BotPlatformNavigator
             || planned.toSurface < 0 || planned.toSurface >= surfaces.Count)
             return false;
         return TryArc(planned.fromSurface, planned.toSurface, planned.kind, startX, planned.jumpsRequired,
-            out fromHere, out _);
+            out fromHere, out _, planned.wrapsX);
     }
 
     private static int PairCount(Vector2[] centers, Vector2[] extents)
@@ -406,6 +524,7 @@ public sealed class BotPlatformNavigator
         unchecked
         {
             int hash = stage.borderMin.GetHashCode() * 397 ^ stage.borderMax.GetHashCode();
+            hash = hash * 31 + (int)stage.borderType;
             hash = HashArray(hash, stage.solidCenter);
             hash = HashArray(hash, stage.solidExtent);
             hash = HashArray(hash, stage.platformCenter);

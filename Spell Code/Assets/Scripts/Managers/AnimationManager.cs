@@ -263,7 +263,7 @@ public class AnimationManager : MonoBehaviour
     {
         return GameManager.Instance.players[0..GameManager.Instance.playerCount]
             .Where(player => player != null && player.isConnected)
-            .Concat(GameManager.Instance.playerNPCs.Where(player => player != null))
+            .Concat(GameManager.Instance.playerNPCs.Where(GameManager.Instance.CanSimulateOfflineNpc))
             .Distinct()
             .ToArray();
     }

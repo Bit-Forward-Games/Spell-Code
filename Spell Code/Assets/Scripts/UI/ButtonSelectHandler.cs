@@ -379,9 +379,16 @@ public class ButtonSelectHandler : MonoBehaviour, ISelectHandler, IDeselectHandl
             // NETWORKED jump edge, so every machine agrees on the release frame; the UI only watches
             // that flag. Reading the local InputAction here instead is what let one press close every
             // player's prompt at once, and what desynced the lobby.
+            // OFFLINE: reading that player's own pad is deliberate -- every player's prompt is up at
+            // once and each confirms their own with their own controller, which the pause menu's
+            // single-player device scoping cannot express
+            //
+            // The online branch is deliberately NOT gated: an online pause does not stop the
+            // simulation, choosingCodeMode is networked sim state, and gating a sim-driven display
+            // on a LOCAL pause flag is exactly the desync the comment above warns about.
             bool confirmed = onlineMatch
                 ? (codeModePlayer != null && !codeModePlayer.choosingCodeMode)
-                : (wasCodeModeMenuOpen && pause.WasPlayerSubmitPressedThisFrame(codeModeIndex));
+                : (!pause.paused && wasCodeModeMenuOpen && pause.WasPlayerSubmitPressedThisFrame(codeModeIndex));
 
             if (codeModePlayer != null && pause.uiScript.codeModePromptMenuOpened[codeModeIndex] && confirmed)
             {

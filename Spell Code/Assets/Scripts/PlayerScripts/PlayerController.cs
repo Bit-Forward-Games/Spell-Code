@@ -36,6 +36,32 @@ public enum PlayerState
     CodeRelease
 }
 
+/// <summary>
+/// Who drives a player slot's input. Deliberately separate from pID: pID says WHICH slot a player
+/// occupies (and 0 still means "not in GameManager.players", i.e. a training dummy), while this says
+/// WHERE that slot's input comes from. A bot needs a real pID of 1-4 to receive a character, a
+/// starting spell and VFX, which is exactly the condition that used to switch its AI off, so the two
+/// can no longer be the same question.
+/// </summary>
+public enum InputSource
+{
+    Human,
+    CPU
+}
+
+/// <summary>
+/// How hard a CPU opponent plays. Carried and selectable now so the join flow can be built and
+/// tested end to end, but inert until how readily the bot commits to a long code, 
+/// and spell-choice quality. Lives beside InputSource because it describes
+/// the player slot rather than the manager that spawns it.
+/// </summary>
+public enum BotDifficulty
+{
+    Easy,
+    Medium,
+    Hard
+}
+
 public struct AttackData
 {
     ushort hitstun;
@@ -337,6 +363,19 @@ public class PlayerController : MonoBehaviour
 
     public bool npcOverride = false;
 
+    // Read by GetInputs(). Training dummies are flipped to CPU by InitCharacter when they turn out
+    // not to be in GameManager.players; bot slots will set this explicitly while keeping a real pID.
+    public InputSource inputSource = InputSource.Human;
+
+    // True for a CPU that holds a real slot in GameManager.players, as opposed to a training dummy
+    // parked in playerNPCs. Both are inputSource == CPU, so this is what separates a participant
+    // from a prop -- and it is what stops GetPlayerControllers filing a bot away as a dummy just
+    // because it arrived without an input device.
+    public bool isBot = false;
+
+    // Chosen by the host at the difficulty prompt. Does nothing yet -- see BotDifficulty.
+    public BotDifficulty botDifficulty = BotDifficulty.Medium;
+
     //these variables are to track what collectives the player has. Passives for each collective
     //will only show up if the boolean is true
     public bool vWave = false;
@@ -504,6 +543,9 @@ public class PlayerController : MonoBehaviour
                 break;
             default:
                 pID = 0;
+                // Not found in GameManager.players, so this is a training dummy: no device, input
+                // supplied by npcAI. Bots will set inputSource themselves and keep a real pID.
+                inputSource = InputSource.CPU;
 
                 //set the front and back sorting layers for masking
                 spriteMask.frontSortingLayerID = SortingLayer.NameToID("NPC Front");
@@ -632,6 +674,15 @@ public class PlayerController : MonoBehaviour
         // flag, so without this the code-mode prompt pops straight over the party lobby the moment
         // VS Friends is chosen -- and dismissing it hands UI input and timeScale back to the player.
         // The prompt belongs to a match that has actually started, which the panel closing signals.
+        // A CPU slot never answers this prompt. Navigation below reads codeModePlayer.input.Direction
+        // -- the owning slot's own sim input -- so a bot emitting neutral forever leaves the
+        // highlight stuck on the default with no device able to move it, for the bot or for anyone
+        // else. Its code mode is assigned outright at spawn instead; see GameManager.AddBotPlayer.
+        if (inputSource != InputSource.Human)
+        {
+            return;
+        }
+
         bool onlineMenuOpen = OnlineMenuPanel.OpenPanelCount > 0;
 
         bool showOfflinePrompt = !onlineMatch
@@ -1171,6 +1222,22 @@ public class PlayerController : MonoBehaviour
 
         ulong input = 0;
 
+        // CPU slots produce their input here, packed exactly the way a device would, so nothing
+        // downstream -- PlayerUpdate, the state machine, hitboxes, win conditions -- can tell a bot
+        // from a human.
+        if (inputSource == InputSource.CPU)
+        {
+            if (npcAI == null)
+            {
+                return 5UL; // neutral direction, no buttons
+            }
+
+            // Tick, not NPCUpdate: the base class runs its perception pass on the reaction cadence
+            // around the behaviour's own logic, then resolves held levels into button edges.
+            npcAI.Tick();
+            return (ulong)(ushort)InputConverter.ConvertFromInputSnapshot(npcAI.npcInputSnapshot);
+        }
+
         // In online mode, only the local player gathers input
         if (GameManager.Instance.isOnlineMatchActive)
         {
@@ -1358,7 +1425,11 @@ public class PlayerController : MonoBehaviour
             && !inputManager.isOnlineMatchActive
             && inputManager.screenTransitioning;
 
-        if(pID != 0 && !blockedByScreenTransition)
+        // Every slot reads its input from rawInput now, bots included: GetInputs() has already
+        // packed the AI's decision into the same ulong a gamepad produces. Losing the old
+        // pID == 0 fork is what lets a bot hold a real pID -- and so a character, starting spell
+        // and VFX -- while still being driven by npcAI.
+        if(!blockedByScreenTransition)
         {
             input = InputConverter.ConvertFromLong(rawInput);
             if (GameManager.Instance != null && GameManager.Instance.isOnlineMatchActive)
@@ -1366,20 +1437,15 @@ public class PlayerController : MonoBehaviour
                 ApplyOnlineControlOptionsFromInput(rawInput);
             }
         }
-        else
-        {
-            if(npcAI != null)
-            {
-                npcAI.NPCUpdate();
-                input = npcAI.npcInputSnapshot;
-            }
-        }
 
         // Pause logic
         Pause pause = GameManager.Instance.tempUI.gameObject.GetComponent<Pause>();
         if (!GameManager.Instance.isOnlineMatchActive)
         {
-            if (input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)] && !TrainingOptionsMachine.IsMenuOpenFor(this))
+            // inputSource gate first: a bot must never open the pause menu. Its AI has no reason to
+            // emit Pause today, but the menu takes over UI device scoping and timeScale for whoever
+            // opens it, so a stray press would hand the game to a slot with no human behind it.
+            if (inputSource == InputSource.Human && input.ButtonStates[2] == ButtonState.Pressed && !pause.uiScript.soloGamemodesMenuOpened && !pause.uiScript.tutorialPromptMenuOpened && !pause.uiScript.multiplayerGamemodesMenuOpened && !pause.uiScript.multiplayerGamemodesChooserMenuOpened && !pause.uiScript.codeModePromptMenuOpened[Array.IndexOf(GameManager.Instance.players, this)] && !TrainingOptionsMachine.IsMenuOpenFor(this))
             {
                 int currentPlayerIndex = Array.IndexOf(GameManager.Instance.players, this);
                 if (currentPlayerIndex < 0)

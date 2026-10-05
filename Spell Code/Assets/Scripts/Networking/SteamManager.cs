@@ -12,6 +12,9 @@ public class SteamManager : MonoBehaviour
 #if STEAM_PLAYTEST
     // Playtest App ID
     private const uint SteamAppId = 4569980;
+#elif STEAM_DEMO
+    // Demo App ID
+    private const uint SteamAppId = 4935430;
 #else
     // Base Game App ID
     private const uint SteamAppId = 4500000;

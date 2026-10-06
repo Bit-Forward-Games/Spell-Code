@@ -18,7 +18,7 @@ using UnityEngine.UI;
 ///   Friend Profile buttons  -> OnSlotPressed with 1, 2, 3   (empty invites; occupied opens options)
 ///   "Start Match"           -> StartMatch()
 ///   "Game Modes"            -> OpenGameModeMenu()
-///   Back / cancel           -> LeaveLobby()
+///   Back / cancel           -> confirmation prompt, then LeaveLobby() on "Yes" (back to SoloLobby)
 ///   mode buttons in Panel 2 are borrowed from the offline flow at runtime; their offline callbacks
 ///   are restored as soon as the party chooser closes
 ///
@@ -186,7 +186,14 @@ public class PartyLobbyPanel : OnlineMenuPanel
 
         // After the refreshes, so interactable states are current before focus is chosen.
         MaintainFreeze();
-        if (gameModeMenuOpen)
+        Pause pauseMenu = PauseMenu;
+        if (pauseMenu != null && pauseMenu.IsConfirmationWindowOpen)
+        {
+            // The confirmation window lives under pfb_GameManager/Pause, not under this panel, so
+            // MaintainFocus would treat its buttons as "not mine" and steal selection back here.
+            pauseMenu.MaintainConfirmationFocus();
+        }
+        else if (gameModeMenuOpen)
         {
             MaintainGameModeMenuFocus();
         }
@@ -262,6 +269,15 @@ public class PartyLobbyPanel : OnlineMenuPanel
         // while tearing the whole party screen down.
         CloseGameModeMenuInternal(false);
         ClosePlayerOptionsInternal(false);
+
+        // The leave prompt lives outside this panel, so it would survive the teardown with nothing
+        // left to answer it -- the host can disband or start the match while this player is still
+        // deciding. Drop it outright instead of sliding it out over the next screen.
+        Pause pause = PauseMenu;
+        if (pause != null && pause.IsConfirmationWindowOpen)
+        {
+            pause.CancelConfirmationWindowImmediate();
+        }
     }
 
     private void OnDestroy()
@@ -429,14 +445,39 @@ public class PartyLobbyPanel : OnlineMenuPanel
         }
     }
 
-    /// <summary>Leaves the party lobby. Update then closes this panel because the lobby is gone.</summary>
+    /// <summary>
+    /// Leaves the party lobby and returns to the solo hub. This panel lives inside MainMenu, so
+    /// closing it alone would strand the player on the main menu rather than the SoloLobby they
+    /// entered the online flow from. SceneUiManager.SoloLobby cancels the Steam side itself, so the
+    /// LeaveParty below is what covers the case where the transition is unavailable.
+    /// </summary>
     public void LeaveLobby()
     {
         Lobby?.LeaveParty();
+
+        // Same shape as SteamLobbyManager.FailInviteJoinAndReturnToSoloLobby: SoloLobby() screen-covers
+        // and then ExecuteOrder66s into the boot scene, which is the one hub that keeps an ACTIVE
+        // GameManager, so it is the safe destination. Skip it if we are somehow already there.
+        GameManager manager = GameManager.Instance;
+        if (UnityEngine.SceneManagement.SceneManager.GetActiveScene().name != "SoloLobby"
+            && manager != null
+            && manager.sceneManager != null)
+        {
+            manager.sceneManager.SoloLobby();
+        }
     }
 
     private void HandleCancel()
     {
+        Pause pause = PauseMenu;
+
+        // The prompt is the most recently opened thing, so back answers it rather than the lobby.
+        if (pause != null && pause.IsConfirmationWindowOpen)
+        {
+            pause.CloseConfirmationWindow();
+            return;
+        }
+
         if (playerOptionsOpen)
         {
             ClosePlayerOptions();
@@ -446,6 +487,15 @@ public class PartyLobbyPanel : OnlineMenuPanel
         if (gameModeMenuOpen)
         {
             CloseGameModeMenu();
+            return;
+        }
+
+        // Leaving is one button press away from a lobby the player may have waited to fill, and as
+        // host it also hands the lobby to whoever Steam promotes next, so confirm first. Reuses the
+        // pause menu's confirmation window; without a Pause to borrow it from, fall back to leaving.
+        if (pause != null)
+        {
+            pause.OpenConfirmationWindowFor(LeaveLobby);
             return;
         }
 

@@ -87,6 +87,8 @@ public class PlayerController : MonoBehaviour
         public TextMeshPro textMesh;
         public float elapsed;
         public Color baseColor;
+        public bool held;
+        public float lift;
     }
 
     private class PlayerDamageNumber
@@ -5011,6 +5013,15 @@ public class PlayerController : MonoBehaviour
 
     public void SpawnToast(string text, Color color)
     {
+        SpawnToast(text, color, false);
+    }
+
+    /// <summary>
+    /// A held toast stays up at full strength, without rising, until ClearHeldToasts: for a toast
+    /// describing something that is still open, like the host's bot-difficulty picker.
+    /// </summary>
+    public void SpawnToast(string text, Color color, bool held)
+    {
         if (string.IsNullOrWhiteSpace(text))
         {
             return;
@@ -5044,11 +5055,17 @@ public class PlayerController : MonoBehaviour
             toastRenderer.sortingOrder = short.MaxValue;
         }
 
+        // A toast is centred on its anchor, so every line past the first hangs down over the health
+        // bar. Lift it by the extra height, which puts its bottom line where a one-line toast sits.
+        float lift = Mathf.Max(0f, (toastText.preferredHeight - toastText.GetPreferredValues("A").y) * 0.5f);
+
         activeToasts.Add(new PlayerToast
         {
             textMesh = toastText,
             elapsed = 0f,
-            baseColor = color
+            baseColor = color,
+            held = held,
+            lift = lift
         });
 
         UpdateToastVisuals();
@@ -5230,7 +5247,10 @@ public class PlayerController : MonoBehaviour
                 continue;
             }
 
-            toast.elapsed += Time.deltaTime;
+            if (!toast.held)
+            {
+                toast.elapsed += Time.deltaTime;
+            }
             if (toast.elapsed >= lifetime)
             {
                 Destroy(toast.textMesh.gameObject);
@@ -5273,7 +5293,7 @@ public class PlayerController : MonoBehaviour
             toast.textMesh.color = displayColor;
 
             int stackIndex = (activeToasts.Count - 1) - i;
-            float yOffset = toastBaseVerticalOffset + (stackIndex * toastStackSpacing) + (normalizedLifetime * toastRiseDistance);
+            float yOffset = toastBaseVerticalOffset + toast.lift + (stackIndex * toastStackSpacing) + (normalizedLifetime * toastRiseDistance);
             toast.textMesh.transform.localPosition = new Vector3(0f, yOffset, 0f);
         }
     }
@@ -5361,6 +5381,27 @@ public class PlayerController : MonoBehaviour
 
         activeToasts.Clear();
     }
+
+    public void ClearHeldToasts()
+    {
+        for (int i = activeToasts.Count - 1; i >= 0; i--)
+        {
+            PlayerToast toast = activeToasts[i];
+            if (toast == null || !toast.held)
+            {
+                continue;
+            }
+
+            if (toast.textMesh != null)
+            {
+                Destroy(toast.textMesh.gameObject);
+            }
+            activeToasts.RemoveAt(i);
+        }
+    }
+
+    // False again once something else wiped the toasts (a respawn clears them all).
+    public bool HasHeldToast => activeToasts.Exists(toast => toast != null && toast.held && toast.textMesh != null);
 
     private void ClearDamageNumbers()
     {

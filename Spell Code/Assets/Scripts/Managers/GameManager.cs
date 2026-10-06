@@ -5013,19 +5013,20 @@ public class GameManager : MonoBehaviour
     /// </summary>
     private void UpdateBotLobbyControls()
     {
-        // Bots are offline-only, and slots may only change in the lobby.
-        if (isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
-        {
-            botDifficultyPromptOpen = false;
-            return;
-        }
-
         // Offline, one device is one player and players[0] is whoever joined first. That slot hosts:
         // it is the only one allowed to add or remove bots.
         PlayerController host = playerCount > 0 ? players[0] : null;
+
+        // Bots are offline-only, and slots may only change in the lobby.
+        if (isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            CloseBotDifficultyPrompt(host);
+            return;
+        }
+
         if (host == null || host.inputs == null || host.inputSource != InputSource.Human)
         {
-            botDifficultyPromptOpen = false;
+            CloseBotDifficultyPrompt(host);
             return;
         }
 
@@ -5041,7 +5042,7 @@ public class GameManager : MonoBehaviour
             || IsOnlineEntryPending
             || (tempUI.codeModePromptMenuOpened != null && tempUI.codeModePromptMenuOpened[0]))
         {
-            botDifficultyPromptOpen = false;
+            CloseBotDifficultyPrompt(host);
             return;
         }
 
@@ -5073,7 +5074,7 @@ public class GameManager : MonoBehaviour
 
                 botDifficultyPromptOpen = true;
                 lastBotPromptDirection = 5;
-                ShowBotDifficultyToast(host, $"ADD BOT P{playerCount + 1}");
+                ShowBotDifficultyToast(host);
             }
             return;
         }
@@ -5085,7 +5086,7 @@ public class GameManager : MonoBehaviour
 
         if (removeBot == ButtonState.Pressed)
         {
-            botDifficultyPromptOpen = false;
+            CloseBotDifficultyPrompt(host);
             host.SpawnToast("CANCELLED", colors["white"]);
             return;
         }
@@ -5096,14 +5097,20 @@ public class GameManager : MonoBehaviour
             if (direction == 4)
             {
                 pendingBotDifficulty = PreviousDifficulty(pendingBotDifficulty);
-                ShowBotDifficultyToast(host, null);
+                ShowBotDifficultyToast(host);
             }
             else if (direction == 6)
             {
                 pendingBotDifficulty = NextDifficulty(pendingBotDifficulty);
-                ShowBotDifficultyToast(host, null);
+                ShowBotDifficultyToast(host);
             }
             lastBotPromptDirection = direction;
+        }
+
+        // A respawn wipes the host's toasts; the picker is still open, so put it back.
+        if (!host.HasHeldToast)
+        {
+            ShowBotDifficultyToast(host);
         }
 
         bool confirmed = hostSnapshot.ButtonStates != null
@@ -5115,7 +5122,7 @@ public class GameManager : MonoBehaviour
 
         if (confirmed)
         {
-            botDifficultyPromptOpen = false;
+            CloseBotDifficultyPrompt(host);
             PlayerController spawned = AddBotPlayer(pendingBotDifficulty);
             host.SpawnToast(
                 spawned != null
@@ -5125,12 +5132,33 @@ public class GameManager : MonoBehaviour
         }
     }
 
-    private void ShowBotDifficultyToast(PlayerController host, string prefix)
+    /// <summary>
+    /// The picker is held on screen for as long as it is open, and spells its controls out in the
+    /// host's own glyphs: the host's character is frozen meanwhile, and a toast gone after a second
+    /// would leave nothing saying why or how to get out.
+    /// </summary>
+    private void ShowBotDifficultyToast(PlayerController host)
     {
         string label = pendingBotDifficulty.ToString().ToUpper();
+        string controls =
+            $"{ButtonPromptCompleter.GlyphTagFor(host, "Left")}{ButtonPromptCompleter.GlyphTagFor(host, "Right")} difficulty   "
+            + $"{ButtonPromptCompleter.GlyphTagFor(host, "AddBot")} add   "
+            + $"{ButtonPromptCompleter.GlyphTagFor(host, "RemoveBot")} cancel";
+
+        host.ClearHeldToasts();
         host.SpawnToast(
-            string.IsNullOrEmpty(prefix) ? $"< {label} >" : $"{prefix}:  < {label} >",
-            colors["white"]);
+            $"ADD BOT P{playerCount + 1}:  < {label} >\n<size=60%>{controls}</size>",
+            colors["white"],
+            true);
+    }
+
+    private void CloseBotDifficultyPrompt(PlayerController host)
+    {
+        if (botDifficultyPromptOpen && host != null)
+        {
+            host.ClearHeldToasts();
+        }
+        botDifficultyPromptOpen = false;
     }
 
     private static BotDifficulty NextDifficulty(BotDifficulty current)

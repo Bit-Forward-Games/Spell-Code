@@ -5007,40 +5007,52 @@ public class GameManager : MonoBehaviour
     public bool IsBotDifficultyPromptOpen => botDifficultyPromptOpen;
 
     /// <summary>
+    /// Whether the host's add/remove-bot buttons do anything right now. The lobby's Add Bot / Remove
+    /// Bot hints (OnboardManager.UpdateBotSlotPrompts) check this too, so they are never up while the
+    /// buttons are dead -- in the VS Friends party lobby or while an online match is being joined, say.
+    /// </summary>
+    public bool CanUseBotLobbyControls()
+    {
+        // Bots are offline-only, and slots may only change in the lobby.
+        if (isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            return false;
+        }
+
+        // Offline, one device is one player and players[0] is whoever joined first. That slot hosts:
+        // it is the only one allowed to add or remove bots.
+        PlayerController host = playerCount > 0 ? players[0] : null;
+        if (host == null || host.inputs == null || host.inputSource != InputSource.Human)
+        {
+            return false;
+        }
+
+        // Never fight a menu that already owns the screen -- including the host's own code-mode
+        // prompt, which opens on spawn and navigates with the same directions this one does -- or an
+        // online match on its way in (Quick Match search, party lobby, joining, starting), which
+        // wipes the bots anyway.
+        Pause lobbyPause = tempUI != null ? tempUI.GetComponent<Pause>() : null;
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
+        return tempUI != null
+            && lobbyPause != null
+            && !lobbyPause.paused
+            && !tempUI.soloGamemodesMenuOpened
+            && !tempUI.multiplayerGamemodesMenuOpened
+            && !tempUI.multiplayerGamemodesChooserMenuOpened
+            && !IsOnlineEntryPending
+            && !(lobbyManager != null && lobbyManager.IsSearchingForMatch)
+            && !(tempUI.codeModePromptMenuOpened != null && tempUI.codeModePromptMenuOpened[0]);
+    }
+
+    /// <summary>
     /// Drives the host's add/remove-bot controls from the offline lobby. Called at the very top of
     /// RunFrame, before the input array is sized: playerCount must not change between that
     /// allocation and UpdateGameState's walk over it, or the walk indexes past the end.
     /// </summary>
     private void UpdateBotLobbyControls()
     {
-        // Offline, one device is one player and players[0] is whoever joined first. That slot hosts:
-        // it is the only one allowed to add or remove bots.
         PlayerController host = playerCount > 0 ? players[0] : null;
-
-        // Bots are offline-only, and slots may only change in the lobby.
-        if (isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
-        {
-            CloseBotDifficultyPrompt(host);
-            return;
-        }
-
-        if (host == null || host.inputs == null || host.inputSource != InputSource.Human)
-        {
-            CloseBotDifficultyPrompt(host);
-            return;
-        }
-
-        // Never fight a menu that already owns the screen -- including the host's own code-mode
-        // prompt, which opens on spawn and navigates with the same directions this one does.
-        Pause lobbyPause = tempUI != null ? tempUI.GetComponent<Pause>() : null;
-        if (tempUI == null
-            || lobbyPause == null
-            || lobbyPause.paused
-            || tempUI.soloGamemodesMenuOpened
-            || tempUI.multiplayerGamemodesMenuOpened
-            || tempUI.multiplayerGamemodesChooserMenuOpened
-            || IsOnlineEntryPending
-            || (tempUI.codeModePromptMenuOpened != null && tempUI.codeModePromptMenuOpened[0]))
+        if (!CanUseBotLobbyControls())
         {
             CloseBotDifficultyPrompt(host);
             return;

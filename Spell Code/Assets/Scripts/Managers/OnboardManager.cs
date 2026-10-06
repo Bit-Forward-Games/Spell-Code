@@ -481,15 +481,12 @@ public class OnboardManager : MonoBehaviour
     /// says how to fill it with a bot, and the newest bot's says how to take it back out (removal is
     /// last-in-first-out, so that is the only one that can go). The glyphs are P1's, on whatever
     /// device P1 is holding. They go on each quadrant's botText, which sits clear of the Gamba's
-    /// "Rolls" counter; online there are no bots, so it stays hidden.
+    /// "Rolls" counter, and are up exactly while the buttons work -- never online or in the party lobby.
     /// </summary>
     private void UpdateBotSlotPrompts()
     {
         PlayerController host = gameManager.playerCount > 0 ? gameManager.players[0] : null;
-        bool hostHasBotControls = !gameManager.isOnlineMatchActive
-            && host != null
-            && host.inputs != null
-            && host.inputSource == InputSource.Human;
+        bool hostHasBotControls = gameManager.CanUseBotLobbyControls();
 
         if (hostHasBotControls
             && (addBotPrompt == null || botHintDevice != host.inputs.ActiveInputDevice))

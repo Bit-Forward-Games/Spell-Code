@@ -15,6 +15,36 @@ public static class ButtonPromptCompleter
         return textToDisplay.Replace(stringToReplace, $"<sprite=\"{spriteAsset.name}\" name=\"{stringButtonName}\">");
     }
 
+    /// <summary>
+    /// The sprite tag for one of a player's actions on the device they are actually holding, for text
+    /// that needs more glyphs than a TextSetter can give it (one token per component). The asset names
+    /// are the TMP sprite assets under TextMesh Pro/Resources/Sprite Assets, which TMP resolves by name
+    /// from any text. Empty if the player or the action isn't there.
+    /// </summary>
+    public static string GlyphTagFor(PlayerController player, string actionName)
+    {
+        InputActionMap actionMap = player != null && player.inputs != null ? player.inputs.PlayerActionMap : null;
+        InputAction action = actionMap != null ? actionMap.FindAction(actionName, false) : null;
+        if (action == null)
+        {
+            return string.Empty;
+        }
+
+        InputDevice device = player.inputs.ActiveInputDevice;
+        bool gamepad = device != null ? device is Gamepad : Gamepad.all.Count > 0;
+        string devicePath = gamepad ? "<Gamepad>" : "<Keyboard>";
+        foreach (InputBinding binding in action.bindings)
+        {
+            if (!string.IsNullOrEmpty(binding.effectivePath) && binding.effectivePath.StartsWith(devicePath))
+            {
+                string spriteAssetName = gamepad ? "ControllerGlyphs" : "KeyboardGlyphs";
+                return $"<sprite=\"{spriteAssetName}\" name=\"{GetInputString(binding, false, false)}\">";
+            }
+        }
+
+        return string.Empty;
+    }
+
     private static string GetInputString(InputBinding actionNeeded, bool pressedOverride, bool nullInput)
     {
         string starterString = actionNeeded.ToString();

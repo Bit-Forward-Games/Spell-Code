@@ -237,23 +237,47 @@ public class OnboardManager : MonoBehaviour
                 continue;
             }
 
-            player.joined = player.startsJoined;
-            player.moveText.enabled = player.startsJoined;
-            player.jumpText.enabled = player.startsJoined;
-            player.attackText.enabled = !player.startsJoined;
-            player.castText.enabled = false;
-            player.breakWithSpellcode.enabled = false;
-
-            if (!player.startsJoined)
-            {
-                player.attackText.text = "Join:\n[START]";
-                player.attackText.GetComponent<TextSetter>().referenceString = "Join:\n[START]";
-                player.attackText.GetComponent<TextSetter>().stringToReplace = "[START]";
-                player.attackText.GetComponent<TextSetter>().defaultAction = startActionReference;
-            }
-            ReloadAllGlyphs(playerIndex);
-            SetGambaActive(player, false, false);
+            ApplyInitialSlotUi(playerIndex, player);
         }
+    }
+
+    private void ApplyInitialSlotUi(int playerIndex, PlayerOnboarding player)
+    {
+        player.joined = player.startsJoined;
+        player.moveText.enabled = player.startsJoined;
+        player.jumpText.enabled = player.startsJoined;
+        player.attackText.enabled = !player.startsJoined;
+        player.castText.enabled = false;
+        player.breakWithSpellcode.enabled = false;
+
+        if (!player.startsJoined)
+        {
+            player.attackText.text = "Join:\n[START]";
+            player.attackText.GetComponent<TextSetter>().referenceString = "Join:\n[START]";
+            player.attackText.GetComponent<TextSetter>().stringToReplace = "[START]";
+            player.attackText.GetComponent<TextSetter>().defaultAction = startActionReference;
+        }
+        ReloadAllGlyphs(playerIndex);
+        SetGambaActive(player, false, false);
+    }
+
+    /// <summary>
+    /// Puts one slot back the way an empty slot starts: progress cleared, prompts back to white and
+    /// the Join prompt up. For a player who has LEFT the lobby (a removed bot), whose onboarding
+    /// otherwise stays marked complete for whoever takes the slot next. ResetPlayerOnboarding is the
+    /// one for a player who is still in it.
+    /// </summary>
+    public void ResetSlotToUnjoined(int playerIndex)
+    {
+        if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
+        {
+            return;
+        }
+
+        ResetProgress(player, player.startsJoined);
+        ResetPromptColors(player);
+        ApplyInitialSlotUi(playerIndex, player);
+        StopGraffitiDrip(playerIndex);
     }
 
     public void OnboardUpdate(ulong[] playerInputs)

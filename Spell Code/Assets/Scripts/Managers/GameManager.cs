@@ -4950,6 +4950,37 @@ public class GameManager : MonoBehaviour
         bot.ClearSpellList();
         ProjectileManager.Instance?.DeleteTargetPlayerProjectiles(bot.pID);
 
+        // Hand the quadrant back the way an empty slot starts. A bot that got as far as the door left
+        // its gate broken, its Gamba locked on "already picked" (no re-arming) and its onboarding
+        // marked done -- so whoever took the slot next walked out with no way to get a starter spell.
+        if (gates != null)
+        {
+            foreach (SpellCode_Gate gate in gates)
+            {
+                if (gate != null && gate.ownerPID == bot.pID)
+                {
+                    gate.SetOpen(false);
+                }
+            }
+        }
+
+        foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+        {
+            GambaMachine gamba = gambaGO != null ? gambaGO.GetComponent<GambaMachine>() : null;
+            if (gamba != null && gamba.ownerPID == bot.pID)
+            {
+                // Re-arms it and clears any disks it had dealt the bot.
+                gamba.ResetLobbyState();
+                gamba.ownerPlayer = null;
+            }
+        }
+
+        if (onboardManager == null)
+        {
+            onboardManager = FindFirstObjectByType<OnboardManager>();
+        }
+        onboardManager?.ResetSlotToUnjoined(lastIndex);
+
         PlayerInput botInput = bot.GetComponent<PlayerInput>();
         if (botInput != null)
         {

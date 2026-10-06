@@ -5029,8 +5029,10 @@ public class GameManager : MonoBehaviour
 
         // Never fight a menu that already owns the screen -- including the host's own code-mode
         // prompt, which opens on spawn and navigates with the same directions this one does -- or an
-        // online match on its way in (party lobby, joining, starting), which wipes the bots anyway.
+        // online match on its way in (Quick Match search, party lobby, joining, starting), which
+        // wipes the bots anyway.
         Pause lobbyPause = tempUI != null ? tempUI.GetComponent<Pause>() : null;
+        SteamLobbyManager lobbyManager = SteamLobbyManager.Instance;
         return tempUI != null
             && lobbyPause != null
             && !lobbyPause.paused
@@ -5038,6 +5040,7 @@ public class GameManager : MonoBehaviour
             && !tempUI.multiplayerGamemodesMenuOpened
             && !tempUI.multiplayerGamemodesChooserMenuOpened
             && !IsOnlineEntryPending
+            && !(lobbyManager != null && lobbyManager.IsSearchingForMatch)
             && !(tempUI.codeModePromptMenuOpened != null && tempUI.codeModePromptMenuOpened[0]);
     }
 

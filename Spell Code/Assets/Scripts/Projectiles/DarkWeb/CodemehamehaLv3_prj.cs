@@ -6,11 +6,11 @@ using BestoNet.Types;
 using Fixed = BestoNet.Types.Fixed32;
 using FixedVec2 = BestoNet.Types.Vector2<BestoNet.Types.Fixed32>;
 
-public class CodemehamehaLv1_prj : BaseProjectile
+public class CodemehamehaLv3_prj : BaseProjectile
 {
     protected override void InitializeDefaults()
     {
-        projName = "Codemehameha Lv1";
+        projName = "Codemehameha Lv3";
         //hSpeed = 3f;
         //vSpeed = 0f;
         //lifeSpan = 35; // lasts for 300 logic frames
@@ -38,14 +38,14 @@ public class CodemehamehaLv1_prj : BaseProjectile
                 new HitboxData
                 {
                     xOffset = 0,
-                    yOffset = 5*2,
-                    width = 68*2,
-                    height = 10*2,
-                    xKnockback = 3,
-                    yKnockback = 1,
-                    damage = 15,
-                    hitstun = 30,
-                    attackLvl = 2,
+                    yOffset = 21*2,
+                    width = 212*2,
+                    height = 42*2,
+                    xKnockback = 15,
+                    yKnockback = 10,
+                    damage = 50,
+                    hitstun = 50,
+                    attackLvl = 4,
                 }
             },
             hitbox2 = new List<HitboxData>(),

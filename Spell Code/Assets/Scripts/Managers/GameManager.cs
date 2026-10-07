@@ -4778,7 +4778,11 @@ public class GameManager : MonoBehaviour
         }
 
         // NPCs do not consume human slots and still need visuals when re-enabled.
-        if (!playerInput.user.valid || existingPlayer.npcOverride)
+        // A bot also arrives without a valid user, but it is a participant rather than a prop, so it
+        // is exempt: this is the belt-and-braces pair to the botSpawnInProgress guard above. Without
+        // it a bot reaching here would be filed into playerNPCs as well, given P1's visuals, and
+        // simulated twice per offline tick (once from players[], once from the NPC loop).
+        if ((!playerInput.user.valid || existingPlayer.npcOverride) && !existingPlayer.isBot)
         {
             AnimationManager.Instance.InitializePlayerVisuals(existingPlayer, 0);
             if (!playerNPCs.Contains(existingPlayer))

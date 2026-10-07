@@ -572,6 +572,13 @@ public class PlayerController : MonoBehaviour
                 //break;
         }
 
+        // Only real slots reach here (the dummy branch above returns), so settle inputSource from what
+        // the slot actually is. The dummy branch sets CPU, and without this nothing ever set it back:
+        // a controller whose InitCharacter ran before it was filed into players[] stayed CPU for good,
+        // and since pfb_PlayerController ships with npcAI already assigned, GetInputs would run that AI
+        // for it -- online, ahead of the local-player check, which every peer would do differently.
+        inputSource = isBot ? InputSource.CPU : InputSource.Human;
+
         // Lock starter selection by PID using the actual dictionary keys.
         if (pID == 1) { startingSpell = "Amon Slash"; }
         else if (pID == 2) { startingSpell = "Use The Card"; }

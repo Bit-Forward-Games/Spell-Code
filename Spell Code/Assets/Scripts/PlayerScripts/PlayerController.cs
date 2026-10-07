@@ -372,6 +372,14 @@ public class PlayerController : MonoBehaviour
 
         if (!GameManager.Instance.isOnlineMatchActive)
         {
+            // Tutorial/training NPCs activate while PlayerInputManager joining is disabled.
+            // Register explicitly rather than relying only on its join event.
+            PlayerInput playerInput = GetComponent<PlayerInput>();
+            if (npcOverride || !playerInput.user.valid)
+            {
+                GameManager.Instance.GetPlayerControllers(playerInput);
+            }
+
             InitCharacter();
             ProjectileManager.Instance.InitializeAllProjectiles();
         }
@@ -509,7 +517,11 @@ public class PlayerController : MonoBehaviour
                 spriteMask.frontSortingLayerID = SortingLayer.NameToID("NPC Front");
                 spriteMask.backSortingLayerID = SortingLayer.NameToID("NPC Back");
 
-                Vector2 spawnPosNPC = GameManager.Instance.GetNPCSpawnPositions()[0];
+                Vector2[] npcSpawns = GameManager.Instance.GetNPCSpawnPositions();
+                // A stage without NPC spawn points keeps the NPC at its authored position.
+                Vector2 spawnPosNPC = npcSpawns != null && npcSpawns.Length > 0
+                    ? npcSpawns[0]
+                    : (Vector2)transform.position;
                 FixedVec2 startPosNPC = FixedVec2.FromFloat(spawnPosNPC.x, spawnPosNPC.y);
                 SpawnPlayer(startPosNPC);
                 return;

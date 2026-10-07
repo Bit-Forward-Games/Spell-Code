@@ -63,6 +63,7 @@ public class GameManager : MonoBehaviour
     public GameObject playerPrefab;
     public PlayerController[] players = new PlayerController[4];
     public List<PlayerController> playerNPCs = new List<PlayerController>();
+    private readonly HashSet<PlayerInput> pendingPlayerRegistrations = new();
     public int playerCount = 0;
     [NonSerialized] public WinCon winCon = WinCon.RAMRush;
     [NonSerialized] public ushort ramNeededToWinRound = 1;
@@ -4688,7 +4689,7 @@ public class GameManager : MonoBehaviour
     //gets called everytime a new player enters, recreates player array
     public void GetPlayerControllers(PlayerInput playerInput)
     {
-        if (playerInput == null || playerCount >= players.Length)
+        if (playerInput == null)
         {
             return;
         }
@@ -4715,14 +4716,30 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        //if this player doesn't have a valid user (aka if its a dummy) add it to playerNPCs instead
+        // PlayerInput join callbacks can precede the managers' Awake methods.
+        // Defer the whole registration so a failure cannot leave a half-registered NPC.
+        if (AnimationManager.Instance == null || CharacterDataDictionary.characterDatas == null)
+        {
+            if (pendingPlayerRegistrations.Add(playerInput))
+            {
+                StartCoroutine(RegisterPlayerWhenVisualsReady(playerInput));
+            }
+            return;
+        }
+
+        // NPCs do not consume human slots and still need visuals when re-enabled.
         if (!playerInput.user.valid || existingPlayer.npcOverride)
         {
-            if (!playerNPCs.Contains(existingPlayer)){
+            AnimationManager.Instance.InitializePlayerVisuals(existingPlayer, 0);
+            if (!playerNPCs.Contains(existingPlayer))
+            {
                 playerNPCs.Add(existingPlayer);
-                Debug.Log("Anotha player NPC added");
-                AnimationManager.Instance.InitializePlayerVisuals(existingPlayer, 0);//This currently makes the dummy just always player 1 visuals
             }
+            return;
+        }
+
+        if (playerCount >= players.Length)
+        {
             return;
         }
 
@@ -4753,6 +4770,21 @@ public class GameManager : MonoBehaviour
         }
 
         //Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
+    }
+
+    private IEnumerator RegisterPlayerWhenVisualsReady(PlayerInput playerInput)
+    {
+        while (playerInput != null
+            && (AnimationManager.Instance == null || CharacterDataDictionary.characterDatas == null))
+        {
+            yield return null;
+        }
+
+        pendingPlayerRegistrations.Remove(playerInput);
+        if (playerInput != null)
+        {
+            GetPlayerControllers(playerInput);
+        }
     }
 
     public bool IsGateOpenAtPosition(float x, float y)

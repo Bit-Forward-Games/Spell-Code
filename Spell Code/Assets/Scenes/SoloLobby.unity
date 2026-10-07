@@ -1427,7 +1427,13 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 2016816222820898491, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
       insertIndex: -1
       addedObject: {fileID: 597583011}
-    m_AddedComponents: []
+    m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 620922808215192121, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
+    - targetCorrespondingSourceObject: {fileID: 863563012080769469, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 0}
   m_SourcePrefab: {fileID: 100100000, guid: c6e2af55ed732da47b107dc42f1b9210, type: 3}
 --- !u!114 &1269099312 stripped
 MonoBehaviour:

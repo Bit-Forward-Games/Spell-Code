@@ -774,6 +774,15 @@ public class GameManager : MonoBehaviour
 
             PrivateBetaDebugHotkeys();
         }
+
+        // "." toggles the ping / rollback-frames readout. Gated separately from the debug keys above
+        // because it also ships to players (see SteamManager.NetworkInfoToggleEnabled). Punctuation so
+        // it can't collide with a gameplay binding mid-match; purely local presentation, nothing here
+        // is simulated or hashed, so reading it from Update is fine.
+        if (SteamManager.NetworkInfoToggleEnabled && UnityEngine.Input.GetKeyDown(KeyCode.Period))
+        {
+            ToggleNetworkInfoPanel();
+        }
     }
 
     /// <summary>
@@ -912,12 +921,9 @@ public class GameManager : MonoBehaviour
             SteamAchievements.ResetAllForTesting();
         }
 
-        // "." toggles the ping / rollback-frames readout. Punctuation like the rest of these keys so
-        // it can't collide with a gameplay binding while a match is running.
-        if (UnityEngine.Input.GetKeyDown(KeyCode.Period))
-        {
-            ToggleNetworkInfoPanel();
-        }
+        // "." (network-info toggle) is NOT here: it ships to the base game's default and testing
+        // branches too, so it has its own gate in Update. Keeping a copy here as well would make one
+        // press toggle twice -- i.e. do nothing -- on every branch where both gates are open.
     }
 
     /// <summary>

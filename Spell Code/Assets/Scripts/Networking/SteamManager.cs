@@ -26,6 +26,7 @@ public class SteamManager : MonoBehaviour
     private float firstLaunchUnlockAt = -1f;
 #if !UNITY_EDITOR
     private static bool debugToolsEnabled;
+    private static bool networkInfoToggleEnabled;
 #endif
 
     /// <summary>
@@ -40,6 +41,24 @@ public class SteamManager : MonoBehaviour
             return true;
 #else
             return debugToolsEnabled;
+#endif
+        }
+    }
+
+    /// <summary>
+    /// The "." ping / rollback-frames toggle is the one debug key that also reaches players: on top
+    /// of everywhere DebugToolsEnabled is on, the base game's default and "testing" branches get it.
+    /// It only hides a local readout, so there is nothing in it to abuse -- unlike the rest of the
+    /// debug keys (achievement wipe, deleting P1, forcing a win), which stay behind DebugToolsEnabled.
+    /// </summary>
+    public static bool NetworkInfoToggleEnabled
+    {
+        get
+        {
+#if UNITY_EDITOR
+            return true;
+#else
+            return networkInfoToggleEnabled;
 #endif
         }
     }
@@ -117,7 +136,19 @@ public class SteamManager : MonoBehaviour
                         AdditionalDebugToolsBetaBranch,
                         StringComparison.Ordinal);
 
-                Debug.Log($"Steam beta branch: {currentBetaName ?? "public/default"}. Private debug tools enabled: {debugToolsEnabled}.");
+#if STEAM_PLAYTEST
+                networkInfoToggleEnabled = debugToolsEnabled;
+#else
+                // Base game: listed explicitly rather than inherited from debugToolsEnabled, so "."
+                // keeps working on "testing" even if the full debug keys are ever taken off it.
+                // Steam reports the default branch as no beta at all (null), occasionally "public".
+                networkInfoToggleEnabled = debugToolsEnabled
+                    || string.IsNullOrEmpty(currentBetaName)
+                    || string.Equals(currentBetaName, "public", StringComparison.Ordinal)
+                    || string.Equals(currentBetaName, "testing", StringComparison.Ordinal);
+#endif
+
+                Debug.Log($"Steam beta branch: {currentBetaName ?? "public/default"}. Private debug tools enabled: {debugToolsEnabled}. Network info toggle enabled: {networkInfoToggleEnabled}.");
                 //Debug.Log($"Steamworks Initialized! AppId: {SteamClient.AppId}, User: {SteamClient.Name} ({SteamClient.SteamId})");
 
                 // Deliberately delayed rather than unlocked here. SettingsManager.Awake runs in
@@ -134,6 +165,7 @@ public class SteamManager : MonoBehaviour
         catch (Exception e)
         {
             debugToolsEnabled = false;
+            networkInfoToggleEnabled = false;
             Debug.LogError($"Steamworks initialization exception: {e.Message}");
             // Handle exceptions (e.g., Steam not running, DLL issues)
         }
@@ -193,6 +225,7 @@ public class SteamManager : MonoBehaviour
         hasShutDownSteam = true;
 #if !UNITY_EDITOR
         debugToolsEnabled = false;
+        networkInfoToggleEnabled = false;
 #endif
 
         if (SteamLobbyManager.Instance != null)

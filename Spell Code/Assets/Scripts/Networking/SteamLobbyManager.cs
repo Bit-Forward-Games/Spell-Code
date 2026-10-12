@@ -61,10 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-68"; // scz-68: Codemehameha becomes a real spell. SpellDictionary grows 58->59 (id 58) and projectileList 86->90
-                                                    // (Display/Lv1/Lv2/Lv3 appended at 86-89, so no existing id shifts). New serialized chargeLevel byte on the spell.
-                                                    // The Gamba DarkWeb pool now offers it to a player holding all four brands, so that pool's size (and the
-                                                    // spell GetNextRandom picks from it). Lv1's active window also ends later (16->24).
+    private const string NetcodeVersion = "scz-69"; // scz-69: BaseProjectile.ResetValues resets the hashed allHitPlayersAreIgnored (stale pool value
+                                                    // caused frame-0 projectile hash mismatches), and Shop gates now run inside rollback resim.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

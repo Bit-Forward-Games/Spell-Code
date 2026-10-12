@@ -94,7 +94,9 @@ public class MatchMessageManager : MonoBehaviour
     [Header("Network Settings")]
     [SerializeField] private int MATCH_MESSAGE_CHANNEL = 0;
     [SerializeField] private P2PSend INPUT_SEND_TYPE = P2PSend.UnreliableNoDelay;
-    [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.Reliable;
+    // ACKs only feed RTT and are sent per input packet, so a lost one costs one ping sample. Reliable
+    // ACKs were retransmitted under loss (inflating that sample) and queued ahead of real control traffic.
+    [SerializeField] private P2PSend ACK_SEND_TYPE = P2PSend.UnreliableNoDelay;
     [SerializeField] private int EXTRA_RESEND_FRAMES = 30;
     [SerializeField] private int MAX_INPUTS_PER_PACKET = 64;
 

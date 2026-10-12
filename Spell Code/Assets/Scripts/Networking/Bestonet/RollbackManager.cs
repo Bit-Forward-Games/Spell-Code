@@ -38,6 +38,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         {
             public int frame;
             public byte[] state;
+            // Hashes are only computed on hash-interval frames (the only ones ever sent/compared).
+            public bool hashed;
             public uint hash;
             public uint sharedHash;
             public uint projectileHash;
@@ -1402,11 +1404,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 syncFrame = i;
                 if (matchManager != null)
                 {
-                    int interval = (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
-                        ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
-                        : 30;
-
-                    if (IsStableGameplayHashFrame() && syncFrame % interval == 0 && syncFrame != lastHashSentFrame)
+                    if (IsStableGameplayHashFrame()
+                        && syncFrame % GetStateHashIntervalFrames() == 0
+                        && syncFrame != lastHashSentFrame
+                        && states[syncFrame % StateArraySize].hashed)
                     {
                         lastHashSentFrame = syncFrame;
                         GameState verifiedState = states[syncFrame % StateArraySize];
@@ -2308,6 +2309,16 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
 
         // Call GameManager to get the serialized state
         byte[] currentStateBytes = GameManager.Instance.SerializeManagedState();
+        int frameIndex = localFrame % StateArraySize;
+
+        // Only hash-interval frames are ever sent or compared, so skip the ~30 extra serializations
+        // (4P) everywhere else -- including every rollback resim frame, where this cost stacks up.
+        if (localFrame % GetStateHashIntervalFrames() != 0)
+        {
+            states[frameIndex] = new GameState() { frame = localFrame, state = currentStateBytes };
+            return;
+        }
+
         uint sharedHash = ComputeFnv1a(GameManager.Instance.SerializeSharedGameplayHashState());
         uint projectileHash = ComputeFnv1a(GameManager.Instance.SerializeProjectileHashState());
         int playerCount = Mathf.Max(0, GameManager.Instance.playerCount);
@@ -2334,11 +2345,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         uint hash = ComputeCompositeHash(sharedHash, projectileHash, playerHashes);
 
         // Store the state in the circular buffer using the current local frame
-        int frameIndex = localFrame % StateArraySize;
         states[frameIndex] = new GameState()
         {
             frame = localFrame,
             state = currentStateBytes, // Store the byte array from GameManager
+            hashed = true,
             hash = hash,
             sharedHash = sharedHash,
             projectileHash = projectileHash,
@@ -2414,6 +2425,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         // Force the GameManager's frame number to match the loaded state
         GameManager.Instance.ForceSetFrame(frame);
         return true;
+    }
+
+    // Shared by SaveState (which frames get hashed) and RollbackEvent (which frames get sent).
+    private static int GetStateHashIntervalFrames()
+    {
+        return (StressTestController.Instance != null && StressTestController.Instance.enableStateHashing)
+            ? Mathf.Max(1, StressTestController.Instance.hashSendIntervalFrames)
+            : 30;
     }
 
     private bool HasStateForFrame(int frame)
@@ -2505,7 +2524,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         }
 
         int index = frame % StateArraySize;
-        if (states[index].frame != frame || states[index].state == null)
+        // !hashed: the peer hashes on a different interval (stress-test setting on one side only).
+        if (states[index].frame != frame || states[index].state == null || !states[index].hashed)
         {
             return;
         }

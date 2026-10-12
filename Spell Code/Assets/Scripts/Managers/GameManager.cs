@@ -3769,6 +3769,17 @@ public class GameManager : MonoBehaviour
             {
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
+
+            // Gates live here (not in RunOnlineFrame) so a rollback resimulates them like the
+            // gamba above. Real-frame-only gates meant a machine that rolled back across a gate
+            // break skipped it, while a peer that didn't roll back kept the gate open.
+            for (int i = 0; i < gates.Length; i++)
+            {
+                if (gates[i] != null)
+                {
+                    gates[i].SimulateOnline(isRollback);
+                }
+            }
         }
         else if (activeScene.name == "Gameplay")
         {
@@ -3951,16 +3962,7 @@ public class GameManager : MonoBehaviour
         {
             TickRoundEndTransition(!rbManager.isRollbackFrame);
         }
-        else if (activeScene.name == "Shop")
-        {
-            for (int i = 0; i < gates.Length; i++)
-            {
-                if (gates[i] != null)
-                {
-                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
-                }
-            }
-        }
+        // Shop gates are simulated in UpdateSceneLogic so rollback resim includes them.
         //else if (activeScene.name == "Shop")
         //{
         //    if (!rbManager.isRollbackFrame)

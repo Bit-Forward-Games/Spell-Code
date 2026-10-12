@@ -113,6 +113,11 @@ public abstract class BaseProjectile : MonoBehaviour
         //position = FixedVec2.Zero;
         playerHitArr = new bool[4] { false, false, false, false };
         playerIgnoreArr = new bool[4] {false, false, false, false};
+        // Serialized + hashed, but only recomputed inside ProjectileUpdate. Without this reset a
+        // fresh spawn hashes the previous pool occupant's value on its first frame -- and after a
+        // rollback deletes a mispredicted projectile, that occupant only existed on one machine.
+        // True = what ProjectileUpdate computes for the cleared arrays above (no hits to ignore).
+        allHitPlayersAreIgnored = true;
         multiHitPlayerHitCounterArr = new ushort[]{ 0, 0, 0, 0 };
         Array.Fill(multiHitCount, maxMultiHitCount);
         facingRight = true;

@@ -30,7 +30,8 @@ public class AnimationManager : MonoBehaviour
 
     public SpriteSheetData[] spriteSheetData;
     public Texture2D[] paletteTextures;
-    [NonSerialized] public Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>> PlayerAnimations;
+    // PlayerInput can register during OnEnable, before this manager's Start.
+    [NonSerialized] public Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>> PlayerAnimations = new();
     [SerializeField] public  PlayerController[] fighters;
     [Header("Online Rollback Presentation")]
     // Default off: the LERP at 28f compresses rapid spam-input movement on the rendered
@@ -149,11 +150,6 @@ public class AnimationManager : MonoBehaviour
 
         // Assign animations
         PlayerAnimations[player][PlayerState.Jump] = jumpingRising ? jumpAnims.jumpAnimRising : jumpAnims.jumpAnimFalling;
-    }
-
-    private void Start()
-    {
-        PlayerAnimations = new Dictionary<PlayerController, Dictionary<PlayerState, Sprite[]>>();
     }
 
     /// 🔹 **Used in Local Play** Either one only does what the old UpdateSprites did, if anything rename later.

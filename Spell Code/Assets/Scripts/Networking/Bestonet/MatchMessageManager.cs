@@ -171,6 +171,20 @@ public class MatchMessageManager : MonoBehaviour
 
     private readonly Dictionary<SteamId, PrematchConnectRetry> prematchConnectRetries = new Dictionary<SteamId, PrematchConnectRetry>();
 
+    // Highest input frame each peer has received from us with no gaps (from its ACKs), tagged with the
+    // timeline epoch + scene signature it was measured in, because frame numbers restart every scene.
+    private struct PeerContiguousAck
+    {
+        public int timelineEpoch;
+        public int sceneSignature;
+        public int frame;
+    }
+
+    private readonly Dictionary<SteamId, PeerContiguousAck> peerContiguousAckByPeer = new Dictionary<SteamId, PeerContiguousAck>();
+    // A peer silent for longer than this isn't acking anything either; the drop/timeout path owns it,
+    // so stop stretching every packet back to its stall point.
+    private const float GAP_RESEND_PEER_LIVENESS_SECONDS = 2f;
+
     private struct PendingOutboundPacket
     {
         public SteamId peerId;
@@ -747,6 +761,7 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
         prematchConnectRetries.Clear();
+        peerContiguousAckByPeer.Clear();
         lastStageSelectPacket = null;
         lastStageSelectTransitionId = 0;
         lastRematchLobbyTransitionPacket = null;
@@ -854,6 +869,7 @@ public class MatchMessageManager : MonoBehaviour
         PrunePeerDictionary(sceneMismatchedInputByPeer, rosterPeerIds);
         PrunePeerDictionary(sceneMismatchedInputAgeByPeer, rosterPeerIds);
         PrunePeerDictionary(lastLoggedMismatchSignatureByPeer, rosterPeerIds);
+        PrunePeerDictionary(peerContiguousAckByPeer, rosterPeerIds);
     }
 
     private void MaintainPeerHandshakes()
@@ -966,6 +982,7 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSeenFromPeers.Clear();
         locallyRemovedPeerSlots.Clear();
         prematchConnectRetries.Clear();
+        peerContiguousAckByPeer.Clear();
         sceneMismatchedInputByPeer.Clear();
         sceneMismatchedInputAgeByPeer.Clear();
         lastLoggedMismatchSignatureByPeer.Clear();
@@ -993,6 +1010,7 @@ public class MatchMessageManager : MonoBehaviour
         outboundQueue.Clear();
         inboundQueue.Clear();
         peerHighestRemoteFrameSeen.Clear();
+        peerContiguousAckByPeer.Clear();
         foreach (CircularArray<float> peerTimes in sentFrameTimesByPeer.Values)
         {
             peerTimes.Clear();
@@ -1440,6 +1458,16 @@ public class MatchMessageManager : MonoBehaviour
             + Mathf.Max(14, EXTRA_RESEND_FRAMES);
         int firstFrameToSend = Math.Max(0, latestTargetFrame - resendWindow);
 
+        // Gap-aware resend: during a one-way stall the 2P hold keeps pulsing us forward, so a peer can
+        // fall further behind than the fixed window. Those frames used to be gone for good (the peer
+        // filled them with predictions -> silent desync). Reach back to the oldest frame a live peer
+        // still lacks; the ring clamp and multi-chunk loop below handle the rest.
+        int oldestFrameAPeerLacks = GetOldestInputFrameAPeerLacks();
+        if (oldestFrameAPeerLacks >= 0 && oldestFrameAPeerLacks < firstFrameToSend)
+        {
+            firstFrameToSend = oldestFrameAPeerLacks;
+        }
+
         int totalInputCount = latestTargetFrame - firstFrameToSend + 1;
         if (totalInputCount <= 0)
         {
@@ -1496,7 +1524,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendMessageACK(SteamId peerId, int frameToAck)
+    public void SendMessageACK(SteamId peerId, int frameToAck, int contiguousReceivedFrame)
     {
         if (!peerId.IsValid || !isRunning)
         {
@@ -1510,6 +1538,10 @@ public class MatchMessageManager : MonoBehaviour
             {
                 writer.Write((byte)1);
                 writer.Write(frameToAck);
+                // Context + gap-free high-water mark for the sender's gap-aware resend (-1 = none).
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetOnlineTimelineEpoch() : 0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(contiguousReceivedFrame);
                 SendPacket(peerId, memoryStream.ToArray(), ACK_SEND_TYPE);
             }
         }
@@ -2484,13 +2516,22 @@ public class MatchMessageManager : MonoBehaviour
                         }
                     }
 
-                    SendMessageACK(senderSteamId, newestPacketFrame);
+                    SendMessageACK(
+                        senderSteamId,
+                        // RTT only from the batch's newest chunk: the sender timestamps a frame when it is
+                        // FIRST sent, so ACKing an older (gap-resend) chunk would report a multi-second ping.
+                        newestPacketFrame == batchHighWaterFrame ? newestPacketFrame : -1,
+                        senderSlot >= 0 ? RollbackManager.Instance.GetContiguousReceivedInputFrame(senderSlot) : -1);
                     return;
                 }
 
                 if (packetType == 1)
                 {
                     ProcessACK(senderSteamId, reader.ReadInt32());
+                    if (reader.BaseStream.Length - reader.BaseStream.Position >= sizeof(int) * 3)
+                    {
+                        RecordPeerContiguousAck(senderSteamId, reader.ReadInt32(), reader.ReadInt32(), reader.ReadInt32());
+                    }
                     return;
                 }
 
@@ -2505,7 +2546,8 @@ public class MatchMessageManager : MonoBehaviour
 
     private void ProcessACK(SteamId senderSteamId, int frame)
     {
-        if (!sentFrameTimesByPeer.TryGetValue(senderSteamId, out CircularArray<float> peerSentFrameTimes))
+        if (frame < 0 // -1 = contiguity-only ACK, no RTT sample
+            || !sentFrameTimesByPeer.TryGetValue(senderSteamId, out CircularArray<float> peerSentFrameTimes))
         {
             return;
         }
@@ -2519,6 +2561,75 @@ public class MatchMessageManager : MonoBehaviour
         int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
         peerPingMs[senderSteamId] = rttMs;
         peerSentFrameTimes.Insert(frame, 0f);
+    }
+
+    private void RecordPeerContiguousAck(SteamId peerId, int timelineEpoch, int sceneSignature, int frame)
+    {
+        // Only trust a value measured in the scene we are in now: frame numbers restart every scene,
+        // so a late ACK from the previous one would point the resend at meaningless frames.
+        if (frame < 0
+            || GameManager.Instance == null
+            || timelineEpoch != GameManager.Instance.GetOnlineTimelineEpoch()
+            || sceneSignature != GameManager.Instance.GetNetworkSceneSignature())
+        {
+            return;
+        }
+
+        // ACKs are unreliable and can arrive out of order; keep the high-water mark.
+        if (peerContiguousAckByPeer.TryGetValue(peerId, out PeerContiguousAck existing)
+            && existing.timelineEpoch == timelineEpoch
+            && existing.sceneSignature == sceneSignature
+            && existing.frame >= frame)
+        {
+            return;
+        }
+
+        peerContiguousAckByPeer[peerId] = new PeerContiguousAck
+        {
+            timelineEpoch = timelineEpoch,
+            sceneSignature = sceneSignature,
+            frame = frame
+        };
+    }
+
+    /// <summary>
+    /// First input frame some live peer has not received from us without gaps, or -1 when no peer
+    /// has reported one for the current scene (lobby, scene start, or every peer is caught up enough
+    /// that the caller's fixed window already covers it).
+    /// </summary>
+    private int GetOldestInputFrameAPeerLacks()
+    {
+        if (GameManager.Instance == null || activeRoster == null || peerContiguousAckByPeer.Count == 0)
+        {
+            return -1;
+        }
+
+        int timelineEpoch = GameManager.Instance.GetOnlineTimelineEpoch();
+        int sceneSignature = GameManager.Instance.GetNetworkSceneSignature();
+        float now = Time.unscaledTime;
+        int oldestLackedFrame = -1;
+        foreach (OnlineMatchPeerInfo peer in activeRoster.Peers)
+        {
+            if (peer == null
+                || SameSteamId(peer.SteamId, SteamClient.SteamId)
+                || IsPeerSlotRemovedFromTransport(peer.PlayerSlot)
+                || !peerContiguousAckByPeer.TryGetValue(peer.SteamId, out PeerContiguousAck ack)
+                || ack.timelineEpoch != timelineEpoch
+                || ack.sceneSignature != sceneSignature
+                || !peerLastPacketTime.TryGetValue(peer.SteamId, out float lastPacketTime)
+                || now - lastPacketTime > GAP_RESEND_PEER_LIVENESS_SECONDS)
+            {
+                continue;
+            }
+
+            int lackedFrame = ack.frame + 1;
+            if (oldestLackedFrame < 0 || lackedFrame < oldestLackedFrame)
+            {
+                oldestLackedFrame = lackedFrame;
+            }
+        }
+
+        return oldestLackedFrame;
     }
 
     private void RefreshAggregatePing()
@@ -3003,6 +3114,7 @@ public class MatchMessageManager : MonoBehaviour
         sceneMismatchedInputByPeer.Remove(peerId);
         sceneMismatchedInputAgeByPeer.Remove(peerId);
         lastLoggedMismatchSignatureByPeer.Remove(peerId);
+        peerContiguousAckByPeer.Remove(peerId);
         outboundQueue.RemoveAll(packet => SameSteamId(packet.peerId, peerId));
         inboundQueue.RemoveAll(packet => SameSteamId(packet.peerId, peerId));
 

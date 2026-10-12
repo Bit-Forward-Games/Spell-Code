@@ -171,6 +171,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private const int StateArraySize = 180;
         public const int InputArraySize = 180; // Should match StateArraySize generally
         private const int FrameAdvantageArraySize = 32;
+        // Gameplay/Shop never simulate more than this many frames past syncFrame. Keeps the rollback
+        // baseline inside the state ring, bounds the worst-case resim, and keeps every frame a peer
+        // can still be missing inside the sender's InputArraySize resend reach.
+        private const int MaxUnconfirmedFrames = 60;
         // --- End Constants ---
 
         // --- Runtime State ---
@@ -1312,6 +1316,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         int framesBeforeRollback = localFrame;
         RollbackFrames = 0;
         bool foundDesyncedFrame = false;
+        // In Gameplay/Shop, syncFrame may only advance through an unbroken run of confirmed frames.
+        // Hopping over a missing frame confirmed whatever was predicted for it, and the real input,
+        // arriving later at or below syncFrame, was then discarded: a silent desync. The lobby keeps
+        // hop-over (its streams are re-labeled around snapshots, and host snapshots repair drift).
+        // Mismatch scanning still covers every frame either way.
+        bool requireUnbrokenSync = IsDeterministicOnlineScene();
+        bool allEarlierFramesVerified = true;
 
         // Check for Mismatched Inputs
         for (int i = syncFrame + 1; i <= framesBeforeRollback; i++)
@@ -1399,7 +1410,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 break;
             }
 
-            if (frameVerified && states[i % StateArraySize].frame == i)
+            if (!frameVerified && requireUnbrokenSync)
+            {
+                allEarlierFramesVerified = false;
+            }
+
+            if (frameVerified && allEarlierFramesVerified && states[i % StateArraySize].frame == i)
             {
                 syncFrame = i;
                 if (matchManager != null)
@@ -1696,7 +1712,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     Debug.LogWarning($"Frame stall timeout suppressed; peers are still responsive. Local={currentFrame}, Remote={effectiveRemoteFrame}, Sync={syncFrame}, Slots={GetRemoteFrameDebugString()}");
                     remoteFrameStallTicks = 0;
                     ResetTimeoutGrace(1f);
-                    return true;
+                    return !IsAtUnconfirmedFrameLimit(currentFrame);
                 }
 
                 // A roster-based online match can survive a disconnect: drop the stale peer
@@ -1803,6 +1819,19 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 consecutiveDrop = 0;
                 lastDroppedFrame = currentFrame;
                 return true;
+            }
+
+            // History hold (Gameplay/Shop): the 2P prediction hold below pulses past its cap while a
+            // peer's inputs are stalled. Uncapped, that outran the state ring (rollback then re-based on
+            // top of a known mismatch) and the peer's resend reach. Hold here, never pulse.
+            if (IsAtUnconfirmedFrameLimit(currentFrame))
+            {
+                if (lastDroppedFrame != currentFrame)
+                {
+                    Debug.LogWarning($"Frame Pace History Hold: Local {currentFrame}, Sync {syncFrame}, Remote {effectiveRemoteFrame}. {MaxUnconfirmedFrames} unconfirmed frames; waiting for remote input.");
+                    lastDroppedFrame = currentFrame;
+                }
+                return false;
             }
 
             int maxPredictionAhead = GetMaxPredictionAheadFrames();
@@ -1913,6 +1942,39 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             // If no conditions met to drop/stall, allow the update
             consecutiveDrop = 0; // Reset drop counter if update is allowed
             return true;
+        }
+
+        private bool IsAtUnconfirmedFrameLimit(int currentFrame)
+        {
+            return IsDeterministicOnlineScene() && currentFrame - syncFrame >= MaxUnconfirmedFrames;
+        }
+
+        /// <summary>
+        /// Highest input frame (sender's numbering) received from this slot with no gaps. Echoed in
+        /// ACKs so the sender resends anything its fixed window has already moved past. -1 outside
+        /// Gameplay/Shop, where lobby streams are re-labeled and backfill-trimmed.
+        /// </summary>
+        public int GetContiguousReceivedInputFrame(int slot)
+        {
+            if (!IsDeterministicOnlineScene()
+                || !remotePlayerSlots.Contains(slot)
+                || pendingRemoteInputSlots.Contains(slot)
+                || !receivedInputsBySlot.TryGetValue(slot, out FrameMetadataArray received))
+            {
+                return -1;
+            }
+
+            // Frames at or below syncFrame are settled (and SetRemoteInput discards them on arrival),
+            // so the run starts there.
+            int frame = syncFrame;
+            int lastBufferedFrame = syncFrame + InputArraySize - 1;
+            while (frame < lastBufferedFrame && received.ContainsKey(frame + 1))
+            {
+                frame++;
+            }
+
+            int frameOffset = remoteFrameOffsetBySlot.TryGetValue(slot, out int offset) ? offset : 0;
+            return frame - frameOffset;
         }
 
         private int GetMaxPredictionAheadFrames()

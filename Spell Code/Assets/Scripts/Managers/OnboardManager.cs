@@ -30,6 +30,8 @@ public class OnboardManager : MonoBehaviour
         public TextMeshProUGUI attackText;
         public TextMeshProUGUI castText;
         public SpriteRenderer breakWithSpellcode;
+        [Tooltip("Add Bot / Remove Bot hint (UpdateBotSlotPrompts). Optional; P1's slot never needs one.")]
+        public TextMeshProUGUI botText;
 
         [NonSerialized] public GambaMachine gamba;
         [NonSerialized] public bool gambaActive;
@@ -237,23 +239,48 @@ public class OnboardManager : MonoBehaviour
                 continue;
             }
 
-            player.joined = player.startsJoined;
-            player.moveText.enabled = player.startsJoined;
-            player.jumpText.enabled = player.startsJoined;
-            player.attackText.enabled = !player.startsJoined;
-            player.castText.enabled = false;
-            player.breakWithSpellcode.enabled = false;
-
-            if (!player.startsJoined)
-            {
-                player.attackText.text = "Join:\n[START]";
-                player.attackText.GetComponent<TextSetter>().referenceString = "Join:\n[START]";
-                player.attackText.GetComponent<TextSetter>().stringToReplace = "[START]";
-                player.attackText.GetComponent<TextSetter>().defaultAction = startActionReference;
-            }
-            ReloadAllGlyphs(playerIndex);
-            SetGambaActive(player, false, false);
+            ApplyInitialSlotUi(playerIndex, player);
         }
+    }
+
+    private void ApplyInitialSlotUi(int playerIndex, PlayerOnboarding player)
+    {
+        player.joined = player.startsJoined;
+        player.moveText.enabled = player.startsJoined;
+        player.jumpText.enabled = player.startsJoined;
+        player.attackText.enabled = !player.startsJoined;
+        player.castText.enabled = false;
+        player.breakWithSpellcode.enabled = false;
+        SetBotText(player, null);
+
+        if (!player.startsJoined)
+        {
+            player.attackText.text = "Join:\n[START]";
+            player.attackText.GetComponent<TextSetter>().referenceString = "Join:\n[START]";
+            player.attackText.GetComponent<TextSetter>().stringToReplace = "[START]";
+            player.attackText.GetComponent<TextSetter>().defaultAction = startActionReference;
+        }
+        ReloadAllGlyphs(playerIndex);
+        SetGambaActive(player, false, false);
+    }
+
+    /// <summary>
+    /// Puts one slot back the way an empty slot starts: progress cleared, prompts back to white and
+    /// the Join prompt up. For a player who has LEFT the lobby (a removed bot), whose onboarding
+    /// otherwise stays marked complete for whoever takes the slot next. ResetPlayerOnboarding is the
+    /// one for a player who is still in it.
+    /// </summary>
+    public void ResetSlotToUnjoined(int playerIndex)
+    {
+        if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding player))
+        {
+            return;
+        }
+
+        ResetProgress(player, player.startsJoined);
+        ResetPromptColors(player);
+        ApplyInitialSlotUi(playerIndex, player);
+        StopGraffitiDrip(playerIndex);
     }
 
     public void OnboardUpdate(ulong[] playerInputs)
@@ -305,6 +332,8 @@ public class OnboardManager : MonoBehaviour
 
             UpdatePlayerOnboarding(playerIndex, player);
         }
+
+        UpdateBotSlotPrompts();
     }
 
     private void UpdatePlayerOnboarding(
@@ -313,6 +342,12 @@ public class OnboardManager : MonoBehaviour
     {
         PlayerController player = gameManager.players[playerIndex];
         InputSnapshot input = inputSnapshots[playerIndex];
+
+        if (player.isBot)
+        {
+            UpdateBotOnboarding(playerIndex, onboarding, input);
+            return;
+        }
 
         if (!onboarding.joined)
         {
@@ -395,6 +430,121 @@ public class OnboardManager : MonoBehaviour
                 CompleteOnboarding(playerIndex, onboarding);
             }
         }
+    }
+
+    /// <summary>
+    /// A bot goes through the same lobby steps a player does, its Gamba only arms once it has moved
+    /// and jumped, exactly like theirs, but nobody is reading its prompts (or the graffiti on its
+    /// gate), so this keeps the progress and leaves the quadrant to UpdateBotSlotPrompts.
+    /// </summary>
+    private void UpdateBotOnboarding(
+        int playerIndex,
+        PlayerOnboarding onboarding,
+        InputSnapshot input)
+    {
+        onboarding.joined = true;
+
+        if (!onboarding.codeModePromptSelected
+            && gameManager.tempUI.codeModePromptMenuOpened[playerIndex] == false)
+        {
+            onboarding.codeModePromptSelected = true;
+        }
+
+        if (!onboarding.codeModePromptSelected)
+        {
+            return;
+        }
+
+        if (!onboarding.moveComplete && (input.Direction == 4 || input.Direction == 6))
+        {
+            onboarding.moveComplete = true;
+        }
+
+        if (!onboarding.jumpComplete && input.ButtonStates[1] == ButtonState.Pressed)
+        {
+            onboarding.jumpComplete = true;
+        }
+
+        if (onboarding.moveComplete && onboarding.jumpComplete && !onboarding.gambaActive)
+        {
+            SetGambaActive(onboarding, true, false);
+        }
+    }
+
+    // P1's bot-control prompts, rebuilt only when P1 changes device.
+    private InputDevice botHintDevice;
+    private string addBotPrompt;
+    private string removeBotPrompt;
+
+    /// <summary>
+    /// Lobby hints for the bot controls, which only the host (P1) has, offline: every empty quadrant
+    /// says how to fill it with a bot, and the newest bot's says how to take it back out (removal is
+    /// last-in-first-out, so that is the only one that can go). The glyphs are P1's, on whatever
+    /// device P1 is holding. They go on each quadrant's botText, which sits clear of the Gamba's
+    /// "Rolls" counter; online there are no bots, so it stays hidden.
+    /// </summary>
+    private void UpdateBotSlotPrompts()
+    {
+        PlayerController host = gameManager.playerCount > 0 ? gameManager.players[0] : null;
+        bool hostHasBotControls = !gameManager.isOnlineMatchActive
+            && host != null
+            && host.inputs != null
+            && host.inputSource == InputSource.Human;
+
+        if (hostHasBotControls
+            && (addBotPrompt == null || botHintDevice != host.inputs.ActiveInputDevice))
+        {
+            botHintDevice = host.inputs.ActiveInputDevice;
+            addBotPrompt = $"Add Bot:\n{ButtonPromptCompleter.GlyphTagFor(host, "AddBot")}";
+            removeBotPrompt = $"Remove Bot:\n{ButtonPromptCompleter.GlyphTagFor(host, "RemoveBot")}";
+        }
+
+        for (int playerIndex = 0; playerIndex < players.Count; playerIndex++)
+        {
+            if (!TryGetPlayerOnboarding(playerIndex, out PlayerOnboarding onboarding))
+            {
+                continue;
+            }
+
+            PlayerController player = playerIndex < gameManager.players.Length
+                ? gameManager.players[playerIndex]
+                : null;
+            string botPrompt = null;
+
+            if (player == null)
+            {
+                botPrompt = hostHasBotControls ? addBotPrompt : null;
+            }
+            else if (player.isBot)
+            {
+                onboarding.moveText.enabled = false;
+                onboarding.jumpText.enabled = false;
+                onboarding.attackText.enabled = false;
+                onboarding.castText.enabled = false;
+                onboarding.breakWithSpellcode.enabled = false;
+
+                bool newestBot = hostHasBotControls && playerIndex == gameManager.playerCount - 1;
+                botPrompt = newestBot ? removeBotPrompt : null;
+            }
+
+            SetBotText(onboarding, botPrompt);
+        }
+    }
+
+    // Null hides it. Rewrites the text only when it differs, which also undoes a TextSetter left on
+    // the object from overwriting it at Start.
+    private static void SetBotText(PlayerOnboarding onboarding, string text)
+    {
+        if (onboarding.botText == null)
+        {
+            return;
+        }
+
+        if (text != null && onboarding.botText.text != text)
+        {
+            onboarding.botText.text = text;
+        }
+        onboarding.botText.enabled = text != null;
     }
 
     private static void SetGambaActive(

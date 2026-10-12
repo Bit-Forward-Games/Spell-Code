@@ -3669,6 +3669,29 @@ public class GameManager : MonoBehaviour
         timeoutFrames = 0;
     }
 
+    /// <summary>
+    /// The Gamba machine belonging to a pID, or null. Goes through the cached lookup rather than
+    /// letting callers scan the scene for themselves.
+    /// </summary>
+    public GambaMachine GetGambaForPID(int pID)
+    {
+        foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+        {
+            if (gambaGO == null)
+            {
+                continue;
+            }
+
+            GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+            if (gamba != null && gamba.ownerPID == pID)
+            {
+                return gamba;
+            }
+        }
+
+        return null;
+    }
+
     private List<GameObject> GetValidGambaObjects(bool refreshIfNeeded = false)
     {
         if (gambas == null)
@@ -4407,10 +4430,25 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // Runs before the input array is sized. Adding or removing a bot changes playerCount, and
+        // UpdateGameState walks 0..playerCount indexing this array, so the count has to settle first
+        // or that walk runs off the end. The button edges it reads were derived in the previous
+        // tick's gather, which makes the response one frame late and entirely unnoticeable.
+        UpdateBotLobbyControls();
+
         ulong[] inputs = new ulong[playerCount];
         for (int i = 0; i < inputs.Length; ++i)
         {
             inputs[i] = players[i].GetInputs();
+        }
+
+        // The difficulty prompt is modal for the host alone: neutralise its slot so choosing a
+        // difficulty doesn't also walk the character around or throw a spell. Offline-only by
+        // construction -- RunFrame is the offline tick, and gating sim input on a local UI flag is
+        // exactly what desyncs an online match.
+        if (botDifficultyPromptOpen && inputs.Length > 0)
+        {
+            inputs[0] = 5UL;
         }
 
         // GameEndScreen owns End-scene navigation. Keeping the old jump shortcut here would make
@@ -4585,12 +4623,15 @@ public class GameManager : MonoBehaviour
             players[i].PlayerUpdate((ulong)inputs[i]);
         }
 
+        // Training dummies are CPU slots, so they gather input through GetInputs() like every other
+        // slot instead of being handed a hardcoded neutral. playerNPCs is only ever populated
+        // offline, so this never runs inside a rollback resim.
         for (int i = 0; i < playerNPCs.Count; i++)
         {
             PlayerController npc = playerNPCs[i];
             if (CanSimulateOfflineNpc(npc))
             {
-                npc.PlayerUpdate(5);
+                npc.PlayerUpdate(npc.GetInputs());
             }
         }
 
@@ -4699,6 +4740,15 @@ public class GameManager : MonoBehaviour
             return;
         }
 
+        // AddBotPlayer files its own controller into players[]. Unity fires this join event from
+        // PlayerInput.OnEnable, which runs inside Instantiate and therefore gets here first, seeing
+        // a controller with no paired device -- which the diversion below would file away as a
+        // training dummy. Let AddBotPlayer finish and do the registration itself.
+        if (botSpawnInProgress)
+        {
+            return;
+        }
+
         // Check if this player is already registered
         PlayerController existingPlayer = playerInput.GetComponent<PlayerController>();
         if (existingPlayer == null)
@@ -4716,7 +4766,9 @@ public class GameManager : MonoBehaviour
         }
 
         //if this player doesn't have a valid user (aka if its a dummy) add it to playerNPCs instead
-        if (!playerInput.user.valid || existingPlayer.npcOverride)
+        // A bot also arrives without a valid user, but it is a participant rather than a prop, so it
+        // is exempt: this is the belt-and-braces pair to the botSpawnInProgress guard above.
+        if ((!playerInput.user.valid || existingPlayer.npcOverride) && !existingPlayer.isBot)
         {
             if (!playerNPCs.Contains(existingPlayer)){
                 playerNPCs.Add(existingPlayer);
@@ -4753,6 +4805,370 @@ public class GameManager : MonoBehaviour
         }
 
         //Debug.Log($"[GetPlayerControllers] Player added. New playerCount={playerCount}");
+    }
+
+    // Set only while AddBotPlayer is inside Instantiate. See the guard in GetPlayerControllers.
+    private bool botSpawnInProgress = false;
+
+    /// <summary>
+    /// Spawns a CPU opponent into the next free player slot and returns it, or null when the lobby
+    /// is full or a match is online. Deliberately mirrors what GetPlayerControllers does for a human
+    /// join, minus the input device: the bot lands in players[] at a real index, so pID, spawn
+    /// position, palette, starting spell, win-condition state and the HUD label all resolve through
+    /// the same paths a human already uses instead of needing bot-specific copies.
+    /// </summary>
+    public PlayerController AddBotPlayer(BotDifficulty difficulty = BotDifficulty.Medium)
+    {
+        if (isOnlineMatchActive)
+        {
+            Debug.LogWarning("AddBotPlayer ignored: bots are offline-only.");
+            return null;
+        }
+
+        if (playerCount >= players.Length)
+        {
+            return null;
+        }
+
+        botSpawnInProgress = true;
+        GameObject botObject;
+        try
+        {
+            botObject = InstantiateOnlinePlayerObject();
+        }
+        finally
+        {
+            // Cleared in a finally so a throw inside Instantiate cannot leave the flag stuck on,
+            // which would silently swallow every later human join.
+            botSpawnInProgress = false;
+        }
+
+        PlayerController bot = botObject.GetComponent<PlayerController>();
+        if (bot == null)
+        {
+            Debug.LogError("AddBotPlayer: playerPrefab has no PlayerController.");
+            Destroy(botObject);
+            return null;
+        }
+
+        bot.isBot = true;
+        bot.inputSource = InputSource.CPU;
+        bot.botDifficulty = difficulty;
+
+        // Bots pick their own control options rather than answering the prompt
+        // Synthesizer (vibeCoding false) is the neutral mode: full multi-direction
+        // codes, standard cooldowns, no extra spell-slot cap. Punk is the difficulty lever
+        BotTuning tuning = BotTuning.For(difficulty);
+        SetBotCodeMode(bot, tuning.PunkMode);
+        bot.relativeInputs = false;
+
+        int newPlayerIndex = playerCount;
+        players[newPlayerIndex] = bot;
+        bot._playerPauseIndex = newPlayerIndex;
+
+        // No device to pair and nothing should go looking for one. This is the same treatment a
+        // remote online player gets, for the same reason: its input arrives from somewhere that
+        // isn't hardware.
+        MarkOnlineRemotePlayerInputInactive(bot);
+        AnimationManager.Instance.InitializePlayerVisuals(bot, newPlayerIndex);
+
+        playerCount++;
+
+        ResetPlayerWinConState(bot, true);
+
+        for (int i = 0; i < playerCount; i++)
+        {
+            if (players[i] != null && players[i].playerNum != null)
+            {
+                players[i].playerNum.text = "P" + (i + 1);
+            }
+        }
+
+        // Bots carry their behaviour on their own object, unlike training dummies,
+        // which are prefab instances held in an AIMachine's list
+        ChaseAI botBehavior = bot.gameObject.AddComponent<ChaseAI>();
+        botBehavior.owner = bot;
+        botBehavior.reactionFrames = tuning.ReactionFrames;
+        bot.npcAI = botBehavior;
+
+        // Initialise now rather than waiting for the bot's own Start(), which is the same thing the
+        // online spawn path does and for the same reason. AddBotPlayer is reached from RunFrame, so
+        // UpdateGameState simulates this slot later in THIS tick -- before Start would have run --
+        // and an uninitialised PlayerController has currentPlayerHealth 0, which PlayerUpdate reads
+        // as dead. By now the bot is in players[], so Array.IndexOf resolves a real pID and its
+        // slot's spawn position instead of the training-dummy branch. Start's own call is left
+        // alone: re-running InitCharacter is idempotent apart from a harmless second SpawnPlayer.
+        bot.InitCharacter();
+
+        // Deliberately spawned with an empty spell list: bots take their starter off their own Gamba
+        // in the lobby now, the same way a player does.
+        return bot;
+    }
+
+    /// <summary>
+    /// Picks a bot's input mode. Punk (vibeCoding) exists for humans as an accessibility win: one
+    /// direction tap fires one of the first four actives instead of typing a full code. A bot gets
+    /// nothing from that -- it can enter a twelve-direction code perfectly every time -- while still
+    /// paying Punk's costs: cooldown becomes cooldown + codeLength * 30 frames, and the spell list
+    /// caps at four actives and two passives. That makes Punk a genuine, diegetic handicap rather
+    /// than a fake reaction-time nerf
+    /// </summary>
+    public void SetBotCodeMode(PlayerController bot, bool punkMode)
+    {
+        if (bot == null || !bot.isBot)
+        {
+            return;
+        }
+
+        bot.vibeCoding = punkMode;
+    }
+
+    /// <summary>
+    /// Removes the most recently added bot, which is always the last occupied slot. Strictly
+    /// tail-only: if a human joined after the bots, the tail is theirs and this refuses rather than
+    /// punching a hole in the slot span. playerCount is a contiguous index range that palettes,
+    /// spawn points, gates, onboarding and the HUD all key off, so a gap would have to be paid for
+    /// with a full renumber -- not worth it to save the host from leaving the lobby.
+    /// </summary>
+    public bool RemoveLastBot()
+    {
+        int lastIndex = playerCount - 1;
+        if (lastIndex < 0)
+        {
+            return false;
+        }
+
+        PlayerController bot = players[lastIndex];
+        if (bot == null || !bot.isBot)
+        {
+            return false;
+        }
+
+        // Order matters: everything that resolves the bot by slot or pID has to run while it is
+        // still registered. ClearSpellList destroys its spell objects and rebuilds the projectile
+        // pools; DeleteTargetPlayerProjectiles clears anything of its already in flight.
+        bot.ClearSpellList();
+        ProjectileManager.Instance?.DeleteTargetPlayerProjectiles(bot.pID);
+
+        // Hand the quadrant back the way an empty slot starts. A bot that got as far as the door left
+        // its gate broken, its Gamba locked on "already picked" (no re-arming) and its onboarding
+        // marked done -- so whoever took the slot next walked out with no way to get a starter spell.
+        if (gates != null)
+        {
+            foreach (SpellCode_Gate gate in gates)
+            {
+                if (gate != null && gate.ownerPID == bot.pID)
+                {
+                    gate.SetOpen(false);
+                }
+            }
+        }
+
+        foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+        {
+            GambaMachine gamba = gambaGO != null ? gambaGO.GetComponent<GambaMachine>() : null;
+            if (gamba != null && gamba.ownerPID == bot.pID)
+            {
+                // Re-arms it and clears any disks it had dealt the bot.
+                gamba.ResetLobbyState();
+                gamba.ownerPlayer = null;
+            }
+        }
+
+        if (onboardManager == null)
+        {
+            onboardManager = FindFirstObjectByType<OnboardManager>();
+        }
+        onboardManager?.ResetSlotToUnjoined(lastIndex);
+
+        PlayerInput botInput = bot.GetComponent<PlayerInput>();
+        if (botInput != null)
+        {
+            botInput.DeactivateInput();
+            botInput.enabled = false;
+        }
+
+        players[lastIndex] = null;
+        playerCount--;
+
+        Destroy(bot.gameObject);
+
+        // Rebuild the pools now the slot is gone, so nothing keeps a handle on the destroyed owner.
+        ProjectileManager.Instance?.InitializeAllProjectiles();
+        return true;
+    }
+
+    // Host-only lobby prompt state. Purely local: it gates nothing in the simulation beyond
+    // neutralising the host's own input while the prompt is up, and it only ever runs offline.
+    private bool botDifficultyPromptOpen;
+    private BotDifficulty pendingBotDifficulty = BotDifficulty.Medium;
+    private int lastBotPromptDirection = 5;
+
+    public bool IsBotDifficultyPromptOpen => botDifficultyPromptOpen;
+
+    /// <summary>
+    /// Drives the host's add/remove-bot controls from the offline lobby. Called at the very top of
+    /// RunFrame, before the input array is sized: playerCount must not change between that
+    /// allocation and UpdateGameState's walk over it, or the walk indexes past the end.
+    /// </summary>
+    private void UpdateBotLobbyControls()
+    {
+        // Offline, one device is one player and players[0] is whoever joined first. That slot hosts:
+        // it is the only one allowed to add or remove bots.
+        PlayerController host = playerCount > 0 ? players[0] : null;
+
+        // Bots are offline-only, and slots may only change in the lobby.
+        if (isOnlineMatchActive || SceneManager.GetActiveScene().name != "MainMenu")
+        {
+            CloseBotDifficultyPrompt(host);
+            return;
+        }
+
+        if (host == null || host.inputs == null || host.inputSource != InputSource.Human)
+        {
+            CloseBotDifficultyPrompt(host);
+            return;
+        }
+
+        // Never fight a menu that already owns the screen -- including the host's own code-mode
+        // prompt, which opens on spawn and navigates with the same directions this one does.
+        Pause lobbyPause = tempUI != null ? tempUI.GetComponent<Pause>() : null;
+        if (tempUI == null
+            || lobbyPause == null
+            || lobbyPause.paused
+            || tempUI.soloGamemodesMenuOpened
+            || tempUI.multiplayerGamemodesMenuOpened
+            || tempUI.multiplayerGamemodesChooserMenuOpened
+            || IsOnlineEntryPending
+            || (tempUI.codeModePromptMenuOpened != null && tempUI.codeModePromptMenuOpened[0]))
+        {
+            CloseBotDifficultyPrompt(host);
+            return;
+        }
+
+        ButtonState addBot = host.inputs.AddBotState;
+        ButtonState removeBot = host.inputs.RemoveBotState;
+
+        if (!botDifficultyPromptOpen)
+        {
+            if (removeBot == ButtonState.Pressed)
+            {
+                if (RemoveLastBot())
+                {
+                    host.SpawnToast($"BOT REMOVED  (P{playerCount + 1})", colors["white"]);
+                }
+                else
+                {
+                    host.SpawnToast("NO BOT TO REMOVE", colors["white"]);
+                }
+                return;
+            }
+
+            if (addBot == ButtonState.Pressed)
+            {
+                if (playerCount >= players.Length)
+                {
+                    host.SpawnToast("LOBBY FULL", colors["white"]);
+                    return;
+                }
+
+                botDifficultyPromptOpen = true;
+                lastBotPromptDirection = 5;
+                ShowBotDifficultyToast(host);
+            }
+            return;
+        }
+
+        // Prompt is open. Navigation deliberately reads the host's raw device snapshot rather than
+        // its PlayerController.input, because RunFrame neutralises the latter while the prompt is up
+        // so the host does not walk their character around while choosing.
+        InputSnapshot hostSnapshot = host.inputs.CurrentSnapshot;
+
+        if (removeBot == ButtonState.Pressed)
+        {
+            CloseBotDifficultyPrompt(host);
+            host.SpawnToast("CANCELLED", colors["white"]);
+            return;
+        }
+
+        int direction = hostSnapshot.Direction;
+        if (direction != lastBotPromptDirection)
+        {
+            if (direction == 4)
+            {
+                pendingBotDifficulty = PreviousDifficulty(pendingBotDifficulty);
+                ShowBotDifficultyToast(host);
+            }
+            else if (direction == 6)
+            {
+                pendingBotDifficulty = NextDifficulty(pendingBotDifficulty);
+                ShowBotDifficultyToast(host);
+            }
+            lastBotPromptDirection = direction;
+        }
+
+        // A respawn wipes the host's toasts; the picker is still open, so put it back.
+        if (!host.HasHeldToast)
+        {
+            ShowBotDifficultyToast(host);
+        }
+
+        bool confirmed = hostSnapshot.ButtonStates != null
+            && hostSnapshot.ButtonStates[0] == ButtonState.Pressed;
+        if (!confirmed && addBot == ButtonState.Pressed)
+        {
+            confirmed = true;
+        }
+
+        if (confirmed)
+        {
+            CloseBotDifficultyPrompt(host);
+            PlayerController spawned = AddBotPlayer(pendingBotDifficulty);
+            host.SpawnToast(
+                spawned != null
+                    ? $"P{playerCount} BOT  {pendingBotDifficulty.ToString().ToUpper()}"
+                    : "LOBBY FULL",
+                colors["white"]);
+        }
+    }
+
+    /// <summary>
+    /// The picker is held on screen for as long as it is open, and spells its controls out in the
+    /// host's own glyphs: the host's character is frozen meanwhile, and a toast gone after a second
+    /// would leave nothing saying why or how to get out.
+    /// </summary>
+    private void ShowBotDifficultyToast(PlayerController host)
+    {
+        string label = pendingBotDifficulty.ToString().ToUpper();
+        string controls =
+            $"{ButtonPromptCompleter.GlyphTagFor(host, "Left")}{ButtonPromptCompleter.GlyphTagFor(host, "Right")} difficulty   "
+            + $"{ButtonPromptCompleter.GlyphTagFor(host, "AddBot")} add   "
+            + $"{ButtonPromptCompleter.GlyphTagFor(host, "RemoveBot")} cancel";
+
+        host.ClearHeldToasts();
+        host.SpawnToast(
+            $"ADD BOT P{playerCount + 1}:  < {label} >\n<size=60%>{controls}</size>",
+            colors["white"],
+            true);
+    }
+
+    private void CloseBotDifficultyPrompt(PlayerController host)
+    {
+        if (botDifficultyPromptOpen && host != null)
+        {
+            host.ClearHeldToasts();
+        }
+        botDifficultyPromptOpen = false;
+    }
+
+    private static BotDifficulty NextDifficulty(BotDifficulty current)
+    {
+        return current == BotDifficulty.Hard ? BotDifficulty.Easy : current + 1;
+    }
+
+    private static BotDifficulty PreviousDifficulty(BotDifficulty current)
+    {
+        return current == BotDifficulty.Easy ? BotDifficulty.Hard : current - 1;
     }
 
     public bool IsGateOpenAtPosition(float x, float y)

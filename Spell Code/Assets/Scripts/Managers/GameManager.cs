@@ -921,6 +921,24 @@ public class GameManager : MonoBehaviour
             SteamAchievements.ResetAllForTesting();
         }
 
+        // ";" forces a desync on THIS machine only, to exercise the host resync. Nudges the local player
+        // and re-bases rollback history on the nudged state so an ordinary rollback can't quietly undo it.
+        // On a guest the host's resync should snap it back; on the host the guests should adopt the nudge.
+        if (isOnlineMatchActive
+            && UnityEngine.Input.GetKeyDown(KeyCode.Semicolon)
+            && SceneManager.GetActiveScene().name == "Gameplay"
+            && RollbackManager.Instance != null
+            && localPlayerIndex >= 0
+            && localPlayerIndex < players.Length
+            && players[localPlayerIndex] != null)
+        {
+            PlayerController localPlayer = players[localPlayerIndex];
+            localPlayer.position = new FixedVec2(localPlayer.position.X + Fixed.FromInt(48), localPlayer.position.Y);
+            RollbackManager.Instance.ResetRollbackBaseline(frameNumber);
+            RollbackManager.Instance.SaveState();
+            Debug.LogWarning($"[DESYNC RESYNC] Debug: forced a local desync at frame {frameNumber} (P{localPlayerIndex + 1} nudged 48 units).");
+        }
+
         // "." (network-info toggle) is NOT here: it ships to the base game's default and testing
         // branches too, so it has its own gate in Update. Keeping a copy here as well would make one
         // press toggle twice -- i.e. do nothing -- on every branch where both gates are open.

@@ -253,7 +253,27 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             public uint[] remotePlayerCoreHashes;
             public uint[] remotePlayerSpellHashes;
             public uint[] remotePlayerCoreSubHashes;
+            public int remoteResyncGeneration;
         }
+
+        // --- Desync resync (host-authoritative, Gameplay only) ---
+        // On a hash mismatch the host sends that guest its latest CONFIRMED state; the guest loads it
+        // and resimulates forward with its own input buffers (a rollback onto the host's base state).
+        // Host side: resyncs sent per guest this scene + when the last one went out.
+        private readonly Dictionary<int, int> resyncsSentBySlot = new Dictionary<int, int>();
+        private readonly Dictionary<int, float> lastResyncSentRealtimeBySlot = new Dictionary<int, float>();
+        // Guest side: highest resync generation processed, stamped on every hash this machine sends.
+        // Hashes computed before a resync landed are still mismatched and already in flight; the stamp
+        // lets the host ignore those instead of answering each with another resync.
+        private int appliedResyncGeneration = 0;
+        private byte[] pendingResyncState;
+        private int pendingResyncFrame = -1;
+        private int pendingResyncGeneration = 0;
+        private const float ResyncCooldownSeconds = 1.5f;
+        private const float ResyncLostRetrySeconds = 5f;
+        // A divergence the savestate can't carry (a hashed field Serialize skips) would re-desync right
+        // after every resync; stop answering it rather than hitching every cooldown for the whole round.
+        private const int MaxResyncsPerSlotPerScene = 6;
 
         // --- Properties ---
         // Get local frame directly from GameManager
@@ -524,6 +544,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             PruneSlotDictionary(remoteLastReceivedDirectionBySlot, validRemoteSlots);
             PruneSlotDictionary(remoteHeldDirectionStreakBySlot, validRemoteSlots);
             PruneSlotDictionary(lobbyLeadAlignedInputPacketBySlot, validRemoteSlots);
+            PruneSlotDictionary(resyncsSentBySlot, validRemoteSlots);
+            PruneSlotDictionary(lastResyncSentRealtimeBySlot, validRemoteSlots);
             pendingRemoteInputSlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
             initialInputStreamReadySlots.RemoveWhere(slot => !validRemoteSlots.Contains(slot));
             PrunePendingRemoteHashes(validRemoteSlots);
@@ -667,6 +689,14 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             lastHashSentFrame = -1;
             firstHashMismatchFrame = -1;
             pendingRemoteHashes.Clear();
+            // ClearVars runs at every Gameplay/Shop scene start on every peer, so host counts and guest
+            // generations restart together.
+            resyncsSentBySlot.Clear();
+            lastResyncSentRealtimeBySlot.Clear();
+            appliedResyncGeneration = 0;
+            pendingResyncState = null;
+            pendingResyncFrame = -1;
+            pendingResyncGeneration = 0;
             // Initialize to avoid timeout on first frames
             localFrameAdvantage = 0;
             opponentLastAppliedInput = 5;
@@ -1313,6 +1343,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             return;
         }
 
+        // Before any verification or hash send this tick, so every hash sent afterwards carries the
+        // new generation AND describes the corrected timeline.
+        ApplyPendingAuthoritativeResync();
+
         int framesBeforeRollback = localFrame;
         RollbackFrames = 0;
         bool foundDesyncedFrame = false;
@@ -1435,7 +1469,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                             verifiedState.playerHashes ?? new uint[0],
                             verifiedState.playerCoreHashes ?? new uint[0],
                             verifiedState.playerSpellHashes ?? new uint[0],
-                            verifiedState.playerCoreSubHashes ?? new uint[0]);
+                            verifiedState.playerCoreSubHashes ?? new uint[0],
+                            appliedResyncGeneration);
                     }
                 }
             }
@@ -2518,7 +2553,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes, remotePlayerCoreSubHashes);
     }
 
-    public void OnRemoteStateHash(int remoteSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
+    public void OnRemoteStateHash(int remoteSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes, int remoteResyncGeneration = 0)
     {
         if (frame > syncFrame)
         {
@@ -2538,12 +2573,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 remotePlayerHashes = remotePlayerHashes,
                 remotePlayerCoreHashes = remotePlayerCoreHashes,
                 remotePlayerSpellHashes = remotePlayerSpellHashes,
-                remotePlayerCoreSubHashes = remotePlayerCoreSubHashes
+                remotePlayerCoreSubHashes = remotePlayerCoreSubHashes,
+                remoteResyncGeneration = remoteResyncGeneration
             };
             return;
         }
 
-        EvaluateRemoteStateHash(remoteSlot, frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes, remotePlayerCoreSubHashes);
+        EvaluateRemoteStateHash(remoteSlot, frame, remoteHash, remoteSharedHash, remoteProjectileHash, remotePlayerHashes, remotePlayerCoreHashes, remotePlayerSpellHashes, remotePlayerCoreSubHashes, remoteResyncGeneration);
     }
 
     private void ProcessPendingRemoteHashes()
@@ -2573,12 +2609,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     pending.remotePlayerHashes,
                     pending.remotePlayerCoreHashes,
                     pending.remotePlayerSpellHashes,
-                    pending.remotePlayerCoreSubHashes);
+                    pending.remotePlayerCoreSubHashes,
+                    pending.remoteResyncGeneration);
             }
         }
     }
 
-    private void EvaluateRemoteStateHash(int remoteSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes)
+    private void EvaluateRemoteStateHash(int remoteSlot, int frame, uint remoteHash, uint remoteSharedHash, uint remoteProjectileHash, uint[] remotePlayerHashes, uint[] remotePlayerCoreHashes, uint[] remotePlayerSpellHashes, uint[] remotePlayerCoreSubHashes, int remoteResyncGeneration)
     {
         if (!IsStableGameplayHashFrame())
         {
@@ -2672,7 +2709,152 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 }
             }
             firstHashMismatchFrame = frame;
+
+            // Diagnostics above capture the divergence first; then repair it.
+            MaybeSendAuthoritativeResync(remoteSlot, remoteResyncGeneration);
         }
+    }
+
+    /// <summary>
+    /// Host only: answer a guest's mismatched hash by sending it the host's latest confirmed state.
+    /// Every input at or below syncFrame is final, so the state carries no host-side prediction.
+    /// </summary>
+    private void MaybeSendAuthoritativeResync(int remoteSlot, int remoteResyncGeneration)
+    {
+        if (remoteSlot < 0
+            || matchManager == null
+            || GameManager.Instance == null
+            || !GameManager.Instance.IsOnlineHostAuthority()
+            || !remotePlayerSlots.Contains(remoteSlot)
+            || !HasStateForFrame(syncFrame))
+        {
+            return;
+        }
+
+        int sent = resyncsSentBySlot.TryGetValue(remoteSlot, out int sentCount) ? sentCount : 0;
+        float now = UnityEngine.Time.unscaledTime;
+        float sinceLast = lastResyncSentRealtimeBySlot.TryGetValue(remoteSlot, out float lastSent)
+            ? now - lastSent
+            : float.MaxValue;
+
+        // Hash computed before our last resync landed: already answered. (Unless that resync looks lost.)
+        if (remoteResyncGeneration < sent && sinceLast < ResyncLostRetrySeconds)
+        {
+            return;
+        }
+
+        if (sinceLast < ResyncCooldownSeconds)
+        {
+            return;
+        }
+
+        if (sent >= MaxResyncsPerSlotPerScene)
+        {
+            if (sent == MaxResyncsPerSlotPerScene)
+            {
+                resyncsSentBySlot[remoteSlot] = sent + 1; // log once
+                Debug.LogError($"[DESYNC RESYNC] P{remoteSlot + 1} keeps diverging after {sent} resyncs this scene; no longer resyncing it (likely a hashed field the savestate does not carry).");
+            }
+            return;
+        }
+
+        sent++;
+        resyncsSentBySlot[remoteSlot] = sent;
+        lastResyncSentRealtimeBySlot[remoteSlot] = now;
+        byte[] confirmedState = states[syncFrame % StateArraySize].state;
+        matchManager.SendAuthoritativeResync(remoteSlot, sent, syncFrame, confirmedState);
+        Debug.LogWarning($"[DESYNC RESYNC] Host sent confirmed state frame {syncFrame} ({confirmedState.Length} bytes) to P{remoteSlot + 1}, resync #{sent} this scene.");
+    }
+
+    /// <summary>
+    /// Guest: queue a host resync (transport has already checked sender, session and scene context).
+    /// Applied at the start of the next RollbackEvent, inside the normal simulation tick.
+    /// </summary>
+    public void ReceiveAuthoritativeResync(int generation, int frame, byte[] stateBytes)
+    {
+        if (stateBytes == null
+            || stateBytes.Length == 0
+            || generation <= appliedResyncGeneration
+            || (pendingResyncState != null && generation <= pendingResyncGeneration))
+        {
+            return;
+        }
+
+        pendingResyncState = stateBytes;
+        pendingResyncFrame = frame;
+        pendingResyncGeneration = generation;
+    }
+
+    private void ApplyPendingAuthoritativeResync()
+    {
+        if (pendingResyncState == null || GameManager.Instance == null)
+        {
+            return;
+        }
+
+        byte[] hostState = pendingResyncState;
+        int hostFrame = pendingResyncFrame;
+        int generation = pendingResyncGeneration;
+        pendingResyncState = null;
+        // Counts as handled even if rejected below: the host's next mismatch then gets a fresh resync
+        // from a newer frame instead of being filtered as stale forever.
+        appliedResyncGeneration = Mathf.Max(appliedResyncGeneration, generation);
+
+        int currentFrame = localFrame;
+        if (SceneManager.GetActiveScene().name != "Gameplay"
+            || GameManager.Instance.isTransitioning
+            || hostFrame < 0
+            || Mathf.Abs(currentFrame - hostFrame) >= InputArraySize - 30)
+        {
+            Debug.LogWarning($"[DESYNC RESYNC] Skipped host resync #{generation} for frame {hostFrame} at local frame {currentFrame} (scene={SceneManager.GetActiveScene().name}, transitioning={GameManager.Instance.isTransitioning}).");
+            return;
+        }
+
+        SetRollbackStatus(true);
+        byte[] liveState = GameManager.Instance.SerializeManagedState();
+        try
+        {
+            GameManager.Instance.DeserializeManagedState(hostState);
+        }
+        catch (Exception e)
+        {
+            // Keep our own (diverged but intact) timeline rather than a half-applied one.
+            Debug.LogError($"[DESYNC RESYNC] Host resync #{generation} failed to load ({e.Message}); keeping local state.");
+            GameManager.Instance.DeserializeManagedState(liveState);
+            GameManager.Instance.ForceSetFrame(currentFrame);
+            SetRollbackStatus(false);
+            return;
+        }
+        GameManager.Instance.ForceSetFrame(hostFrame);
+
+        // The old timeline is dead: nothing before hostFrame may be rolled back to or hash-compared
+        // again. Inputs at or below hostFrame are baked into the host's state.
+        for (int i = 0; i < StateArraySize; i++)
+        {
+            states[i] = new GameState() { frame = -1, state = null, hash = 0 };
+        }
+        foreach (int staleFrame in pendingRemoteHashes.Keys.Where(f => f <= hostFrame).ToList())
+        {
+            pendingRemoteHashes.Remove(staleFrame);
+        }
+        syncFrame = hostFrame;
+        lastHashSentFrame = hostFrame;
+        SaveState();
+
+        // Replay our own buffered inputs from the host's base. If the host was ahead of us (by at most
+        // our input delay) we simply jump to its frame; our inputs for those frames are already in it.
+        ResetRemotePredictionStreaksForResim();
+        for (int i = hostFrame + 1; i <= currentFrame; i++)
+        {
+            ulong[] inputsForResim = SynchronizeInput(i);
+            GameManager.Instance.UpdateGameState(inputsForResim);
+            GameManager.Instance.UpdateSceneLogic(inputsForResim);
+            GameManager.Instance.ForceSetFrame(i);
+            SaveState();
+        }
+        SetRollbackStatus(false);
+
+        Debug.LogWarning($"[DESYNC RESYNC] Applied host resync #{generation}: loaded confirmed frame {hostFrame}, resimulated {Mathf.Max(0, currentFrame - hostFrame)} frames to {localFrame}.");
     }
 
     private void DumpLocalState(int frame, uint localHash, uint remoteHash, byte[] stateBytes)

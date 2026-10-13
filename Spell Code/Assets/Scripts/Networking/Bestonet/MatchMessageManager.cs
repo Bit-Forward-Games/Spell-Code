@@ -122,6 +122,7 @@ public class MatchMessageManager : MonoBehaviour
     private const byte PACKET_TYPE_PEER_DROP_ACK = 51;
     private const byte PACKET_TYPE_INITIAL_INPUT_STREAM_READY = 52;
     private const byte PACKET_TYPE_MATCH_ABORT = 53;
+    private const byte PACKET_TYPE_DESYNC_RESYNC = 54;
     private const float PEER_HANDSHAKE_RESEND_SECONDS = 0.75f;
     private const float READY_SIGNAL_RESEND_SECONDS = 0.75f;
     // Connection-establishment grace. A P2P failure that lands before the match simulation has
@@ -1551,7 +1552,7 @@ public class MatchMessageManager : MonoBehaviour
         }
     }
 
-    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint[] playerHashes, uint[] playerCoreHashes, uint[] playerSpellHashes, uint[] playerCoreSubHashes)
+    public void SendStateHash(int frame, uint hash, uint sharedHash, uint projectileHash, uint[] playerHashes, uint[] playerCoreHashes, uint[] playerSpellHashes, uint[] playerCoreSubHashes, int resyncGeneration)
     {
         if (!HasRemotePeers())
         {
@@ -1564,6 +1565,11 @@ public class MatchMessageManager : MonoBehaviour
             using (BinaryWriter writer = new BinaryWriter(memoryStream))
             {
                 writer.Write(PACKET_TYPE_STATE_HASH);
+                // A mismatch now triggers a host resync, so a late hash from the previous scene (frame
+                // numbers restart every scene) must not be compared against this one.
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetOnlineTimelineEpoch() : 0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(resyncGeneration);
                 writer.Write(frame);
                 writer.Write(hash);
                 writer.Write(sharedHash);
@@ -1578,6 +1584,41 @@ public class MatchMessageManager : MonoBehaviour
         catch (Exception e)
         {
             Debug.LogError($"Error sending state hash: {e}");
+        }
+    }
+
+    /// <summary>
+    /// Host -> one guest: a confirmed savestate to adopt after that guest's hash diverged.
+    /// </summary>
+    public void SendAuthoritativeResync(int slot, int resyncGeneration, int frame, byte[] stateData)
+    {
+        if (!HasRemotePeers()
+            || stateData == null
+            || stateData.Length == 0
+            || !activeRoster.TryGetSteamIdForSlot(slot, out SteamId peerId))
+        {
+            return;
+        }
+
+        try
+        {
+            using (MemoryStream memoryStream = new MemoryStream())
+            using (BinaryWriter writer = new BinaryWriter(memoryStream))
+            {
+                writer.Write(PACKET_TYPE_DESYNC_RESYNC);
+                writer.Write(activeRoster.MatchSessionId);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetOnlineTimelineEpoch() : 0);
+                writer.Write(GameManager.Instance != null ? GameManager.Instance.GetNetworkSceneSignature() : 0);
+                writer.Write(resyncGeneration);
+                writer.Write(frame);
+                writer.Write(stateData.Length);
+                writer.Write(stateData);
+                SendPacket(peerId, memoryStream.ToArray(), P2PSend.Reliable);
+            }
+        }
+        catch (Exception e)
+        {
+            Debug.LogError($"Error sending authoritative resync: {e}");
         }
     }
 
@@ -2045,6 +2086,16 @@ public class MatchMessageManager : MonoBehaviour
 
                 if (packetType == PACKET_TYPE_STATE_HASH)
                 {
+                    int timelineEpoch = reader.ReadInt32();
+                    int sceneSignature = reader.ReadInt32();
+                    int resyncGeneration = reader.ReadInt32();
+                    if (GameManager.Instance == null
+                        || timelineEpoch != GameManager.Instance.GetOnlineTimelineEpoch()
+                        || sceneSignature != GameManager.Instance.GetNetworkSceneSignature())
+                    {
+                        return;
+                    }
+
                     int frame = reader.ReadInt32();
                     uint hash = reader.ReadUInt32();
                     uint sharedHash = reader.ReadUInt32();
@@ -2053,7 +2104,35 @@ public class MatchMessageManager : MonoBehaviour
                     uint[] playerCoreHashes = ReadUIntArray(reader);
                     uint[] playerSpellHashes = ReadUIntArray(reader);
                     uint[] playerCoreSubHashes = ReadUIntArray(reader);
-                    RollbackManager.Instance.OnRemoteStateHash(senderSlot, frame, hash, sharedHash, projectileHash, playerHashes, playerCoreHashes, playerSpellHashes, playerCoreSubHashes);
+                    RollbackManager.Instance.OnRemoteStateHash(senderSlot, frame, hash, sharedHash, projectileHash, playerHashes, playerCoreHashes, playerSpellHashes, playerCoreSubHashes, resyncGeneration);
+                    return;
+                }
+
+                if (packetType == PACKET_TYPE_DESYNC_RESYNC)
+                {
+                    ulong matchSessionId = reader.ReadUInt64();
+                    int timelineEpoch = reader.ReadInt32();
+                    int sceneSignature = reader.ReadInt32();
+                    int resyncGeneration = reader.ReadInt32();
+                    int frame = reader.ReadInt32();
+                    int stateLength = reader.ReadInt32();
+                    // Only the roster host's state is authoritative, and only for the scene we are in.
+                    if (activeRoster == null
+                        || !activeRoster.HostSteamId.IsValid
+                        || !SameSteamId(senderSteamId, activeRoster.HostSteamId)
+                        || activeRoster.MatchSessionId != matchSessionId
+                        || GameManager.Instance == null
+                        || !GameManager.Instance.isOnlineMatchActive
+                        || timelineEpoch != GameManager.Instance.GetOnlineTimelineEpoch()
+                        || sceneSignature != GameManager.Instance.GetNetworkSceneSignature()
+                        || stateLength <= 0
+                        || stateLength > reader.BaseStream.Length - reader.BaseStream.Position)
+                    {
+                        return;
+                    }
+
+                    byte[] stateData = reader.ReadBytes(stateLength);
+                    RollbackManager.Instance.ReceiveAuthoritativeResync(resyncGeneration, frame, stateData);
                     return;
                 }
 

@@ -61,9 +61,9 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-70"; // scz-70: input ACKs carry epoch/scene/contiguous-received frame (RTT frame -1 on non-final
-                                                    // chunks); senders resend from a peer's gap (Gameplay/Shop), syncFrame never skips a missing
-                                                    // frame there, and the sim holds at 60 unconfirmed frames instead of pulsing past the rings.
+    private const string NetcodeVersion = "scz-71"; // scz-71: desync recovery. STATE_HASH packets carry epoch/scene/resync generation; on a
+                                                    // mismatch the host sends that guest its confirmed state (PACKET_TYPE_DESYNC_RESYNC = 54),
+                                                    // which the guest loads and resimulates forward from.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

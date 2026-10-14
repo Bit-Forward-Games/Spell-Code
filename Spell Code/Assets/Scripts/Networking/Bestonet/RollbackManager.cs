@@ -228,7 +228,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private readonly Dictionary<int, int> remoteAdvantageFreshSamplesBySlot = new Dictionary<int, int>();
         private int currentFrameExtensionMicro = 0;
         private int lastHashSentFrame = -1;
-        private int firstHashMismatchFrame = -1;
+        // Full desync reports (state dumps + text) go to the first mismatch of each desync episode,
+        // not just the first of the scene: with host resync a round can now hold several episodes.
+        // The interval keeps one episode (mismatches until the resync lands) to a single report.
+        private float lastDesyncReportRealtime = float.NegativeInfinity;
+        private int desyncReportsThisScene = 0;
+        private const float DesyncReportMinIntervalSeconds = 10f;
+        private const int MaxDesyncReportsPerScene = 4;
         // A frame can have up to three remote hashes in a 4P match. Keep them separated by
         // sender slot so a later peer cannot overwrite an earlier peer's pending comparison.
         private readonly Dictionary<int, Dictionary<int, PendingRemoteHash>> pendingRemoteHashes = new Dictionary<int, Dictionary<int, PendingRemoteHash>>();
@@ -688,7 +694,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             lastLossAwareHoldFrame = -1;
             lastTimeSyncHoldFrame = -1;
             lastHashSentFrame = -1;
-            firstHashMismatchFrame = -1;
+            lastDesyncReportRealtime = float.NegativeInfinity;
+            desyncReportsThisScene = 0;
             pendingRemoteHashes.Clear();
             // ClearVars runs at every Gameplay/Shop scene start on every peer, so host counts and guest
             // generations restart together.
@@ -2647,9 +2654,9 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             uint remotePlayer0SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 0 ? remotePlayerSpellHashes[0] : 0;
             uint remotePlayer1SpellHash = remotePlayerSpellHashes != null && remotePlayerSpellHashes.Length > 1 ? remotePlayerSpellHashes[1] : 0;
             string remotePeerLabel = remoteSlot >= 0 ? $" peer=P{remoteSlot + 1}" : "";
-            Debug.LogError($"[DESYNC HASH] Frame {frame}{remotePeerLabel} local={localHash} remote={remoteHash}");
-            Debug.LogError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
-            Debug.LogError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
+            LogDesyncError($"[DESYNC HASH] Frame {frame}{remotePeerLabel} local={localHash} remote={remoteHash}");
+            LogDesyncError($"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}");
+            LogDesyncError($"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}");
 
             // All-players breakdown. The two lines above only cover p0/p1, so in 3/4P matches a
             // divergence in slot 2/3 (e.g. matchmaking drop-ins) is invisible -- the composite hash
@@ -2688,15 +2695,20 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 }
                 allPlayersHash.Append($" | p{hp}core {lc}/{rc} p{hp}spell {ls}/{rs}{diffFlag}{coreGroups}");
             }
-            Debug.LogError(allPlayersHash.ToString());
+            string allPlayersLine = allPlayersHash.ToString();
+            LogDesyncError(allPlayersLine);
 
-            // Always dump state on first mismatch for diagnosis
-            if (firstHashMismatchFrame < 0)
+            // Full report for the first mismatch of each desync episode (see DesyncReportMinIntervalSeconds).
+            float now = UnityEngine.Time.unscaledTime;
+            if (desyncReportsThisScene < MaxDesyncReportsPerScene
+                && now - lastDesyncReportRealtime >= DesyncReportMinIntervalSeconds)
             {
-                string diag = BuildFrameAccurateDesyncDiagnostics(frame, index);
+                desyncReportsThisScene++;
+                lastDesyncReportRealtime = now;
+                string diag = BuildFrameAccurateDesyncDiagnostics(frame, index, out byte[] frameHashState);
                 diag += BuildInputBufferDump(frame);
                 DumpLocalState(frame, localHash, remoteHash, states[index].state);
-                DumpLocalHashState(frame, localHash, remoteHash);
+                DumpLocalHashState(frame, localHash, remoteHash, frameHashState);
                 WriteDesyncTextReport(
                     remoteSlot,
                     frame,
@@ -2710,13 +2722,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                     remotePlayer1CoreHash,
                     remotePlayer0SpellHash,
                     remotePlayer1SpellHash,
+                    allPlayersLine,
                     diag);
                 if (!string.IsNullOrEmpty(diag))
                 {
-                    Debug.LogError(diag);
+                    LogDesyncError(diag);
                 }
             }
-            firstHashMismatchFrame = frame;
 
             // Diagnostics above capture the divergence first; then repair it.
             MaybeSendAuthoritativeResync(remoteSlot, remoteResyncGeneration);
@@ -2869,31 +2881,56 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
     {
         if (stateBytes == null || stateBytes.Length == 0) return;
 
-        string dir = StressTestController.Instance != null
-            ? StressTestController.Instance.GetDumpDirectory()
-            : Application.persistentDataPath;
-
         string fileName = $"desync_frame_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
-        string path = Path.Combine(dir, fileName);
-        File.WriteAllBytes(path, stateBytes);
-        Debug.LogError($"[DESYNC HASH] Wrote local state dump: {path}");
+        string path = Path.Combine(GetDesyncDumpDirectory(), fileName);
+        WriteDesyncFileInBackground(path, stateBytes);
+        LogDesyncError($"[DESYNC HASH] Writing local state dump: {path}");
     }
 
-    private void DumpLocalHashState(int frame, uint localHash, uint remoteHash)
+    private void DumpLocalHashState(int frame, uint localHash, uint remoteHash, byte[] hashBytes)
     {
-        if (GameManager.Instance == null) return;
-
-        byte[] hashBytes = GameManager.Instance.SerializeHashState();
         if (hashBytes == null || hashBytes.Length == 0) return;
 
-        string dir = StressTestController.Instance != null
+        string fileName = $"desync_hashstate_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
+        string path = Path.Combine(GetDesyncDumpDirectory(), fileName);
+        WriteDesyncFileInBackground(path, hashBytes);
+        LogDesyncError($"[DESYNC HASH] Writing local hash-state dump: {path}");
+    }
+
+    // Main thread only (persistentDataPath is a Unity API); the write itself happens off-thread.
+    private static string GetDesyncDumpDirectory()
+    {
+        return StressTestController.Instance != null
             ? StressTestController.Instance.GetDumpDirectory()
             : Application.persistentDataPath;
+    }
 
-        string fileName = $"desync_hashstate_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.bin";
-        string path = Path.Combine(dir, fileName);
-        File.WriteAllBytes(path, hashBytes);
-        Debug.LogError($"[DESYNC HASH] Wrote local hash-state dump: {path}");
+    // Desync files are written off the main thread: three synchronous writes (plus the antivirus scan
+    // of each new file) landed as a hitch mid-match, right as a desync was already being repaired.
+    // The bytes/lines are built on the main thread and never touched again, so handing them over is safe.
+    private static void WriteDesyncFileInBackground(string path, byte[] bytes)
+    {
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            try { File.WriteAllBytes(path, bytes); }
+            catch (Exception e) { Debug.LogWarning($"[DESYNC HASH] Could not write {path}: {e.Message}"); }
+        });
+    }
+
+    private static void WriteDesyncFileInBackground(string path, string[] lines)
+    {
+        ThreadPool.QueueUserWorkItem(_ =>
+        {
+            try { File.WriteAllLines(path, lines); }
+            catch (Exception e) { Debug.LogWarning($"[DESYNC HASH] Could not write {path}: {e.Message}"); }
+        });
+    }
+
+    // These are always reached through the same call path, so a stack trace adds nothing but cost
+    // (and the full diagnostic block is ~20KB).
+    private static void LogDesyncError(string message)
+    {
+        Debug.LogFormat(LogType.Error, LogOption.NoStacktrace, null, "{0}", message);
     }
 
     private void WriteDesyncTextReport(
@@ -2909,24 +2946,24 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         uint remotePlayer1CoreHash,
         uint remotePlayer0SpellHash,
         uint remotePlayer1SpellHash,
+        string allPlayersLine,
         string diag)
     {
         if (GameManager.Instance == null) return;
 
         int index = frame % StateArraySize;
-        string dir = StressTestController.Instance != null
-            ? StressTestController.Instance.GetDumpDirectory()
-            : Application.persistentDataPath;
-
         string fileName = $"desync_report_{frame}_{localHash}_vs_{remoteHash}_{DateTime.Now:yyyyMMdd_HHmmss}.txt";
-        string path = Path.Combine(dir, fileName);
+        string path = Path.Combine(GetDesyncDumpDirectory(), fileName);
 
         string remotePeerLabel = remoteSlot >= 0 ? $" peer=P{remoteSlot + 1}" : "";
         List<string> lines = new List<string>
         {
             $"[DESYNC HASH] Frame {frame}{remotePeerLabel} local={localHash} remote={remoteHash}",
             $"[DESYNC HASH] Components shared local={states[index].sharedHash} remote={remoteSharedHash} | projectile local={states[index].projectileHash} remote={remoteProjectileHash} | p0 local={states[index].player0Hash} remote={remotePlayer0Hash} | p1 local={states[index].player1Hash} remote={remotePlayer1Hash}",
-            $"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}"
+            $"[DESYNC HASH] PlayerComponents p0core local={states[index].player0CoreHash} remote={remotePlayer0CoreHash} | p0spell local={states[index].player0SpellHash} remote={remotePlayer0SpellHash} | p1core local={states[index].player1CoreHash} remote={remotePlayer1CoreHash} | p1spell local={states[index].player1SpellHash} remote={remotePlayer1SpellHash}",
+            // The line that names the diverged player + core sub-group in 3/4P (only p0/p1 are above);
+            // it used to reach Player.log only.
+            allPlayersLine
         };
 
         if (!string.IsNullOrEmpty(diag))
@@ -2934,8 +2971,8 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             lines.Add(diag);
         }
 
-        File.WriteAllLines(path, lines);
-        Debug.LogError($"[DESYNC HASH] Wrote desync report: {path}");
+        WriteDesyncFileInBackground(path, lines.ToArray());
+        LogDesyncError($"[DESYNC HASH] Writing desync report: {path}");
     }
 
     private void LogDesyncDiagnostics(int frame)
@@ -2951,20 +2988,28 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
     /// BuildDesyncDiagnostics reads LIVE player state, which at high ping is several frames ahead
     /// of the mismatched frame (the remote hash for frame F arrives ~ping later)
     /// </summary>
-    private string BuildFrameAccurateDesyncDiagnostics(int frame, int index)
+    // frameHashState: SerializeHashState() of the same frame, for the hash-state dump. It used to be
+    // taken from the live state, i.e. frames past the mismatch its filename names.
+    private string BuildFrameAccurateDesyncDiagnostics(int frame, int index, out byte[] frameHashState)
     {
+        frameHashState = null;
         if (GameManager.Instance == null) return BuildDesyncDiagnostics(frame);
         byte[] frameBytes = states[index].state;
-        if (frameBytes == null || frameBytes.Length == 0) return BuildDesyncDiagnostics(frame);
-
-        byte[] liveSnapshot = GameManager.Instance.SerializeManagedState();
-        if (liveSnapshot == null) return BuildDesyncDiagnostics(frame);
+        byte[] liveSnapshot = frameBytes != null && frameBytes.Length > 0
+            ? GameManager.Instance.SerializeManagedState()
+            : null;
+        if (liveSnapshot == null)
+        {
+            frameHashState = GameManager.Instance.SerializeHashState();
+            return BuildDesyncDiagnostics(frame);
+        }
 
         bool prevRollback = isRollbackFrame;
         SetRollbackStatus(true); // suppress cosmetic side effects during the temporary load
         try
         {
             GameManager.Instance.DeserializeManagedState(frameBytes);
+            frameHashState = GameManager.Instance.SerializeHashState();
             return BuildDesyncDiagnostics(frame);
         }
         finally

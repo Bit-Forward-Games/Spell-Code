@@ -133,6 +133,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         private int latestScheduledLocalInputFrame = -1;
         public int LatestScheduledLocalInputFrame => latestScheduledLocalInputFrame;
         private const int AdaptiveInputDelayReevalTicks = 180; // re-evaluate at most ~once per 3s between resets
+        private const int AdaptiveInputDelayHysteresisMs = 15; // ping must drop this far below a band edge to step down
 
         [Header("Packet Loss Smoothing")]
         // Optional adaptive layer that briefly holds the local sim when packet loss is detected,
@@ -1592,6 +1593,13 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int step = Mathf.Max(1, AdaptiveInputDelayPingStepMs);
             int worstPingMs = GetWorstPeerPingMs();
             int target = Mathf.Clamp(AdaptiveInputDelayBaseFrames + worstPingMs / step, AdaptiveInputDelayBaseFrames, maxFrames);
+            if (target < InputDelay)
+            {
+                // Hysteresis: only step down once ping sits clearly inside the lower band, so a ping
+                // hovering on a band edge doesn't flip input delay (and input feel) every evaluation.
+                int stickyTarget = Mathf.Clamp(AdaptiveInputDelayBaseFrames + (worstPingMs + AdaptiveInputDelayHysteresisMs) / step, AdaptiveInputDelayBaseFrames, maxFrames);
+                target = Mathf.Min(InputDelay, stickyTarget);
+            }
 
             if (target == InputDelay) return;
 

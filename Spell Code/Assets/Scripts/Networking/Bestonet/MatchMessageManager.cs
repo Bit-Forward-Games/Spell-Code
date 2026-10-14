@@ -134,7 +134,7 @@ public class MatchMessageManager : MonoBehaviour
     private const float PREMATCH_CONNECT_RETRY_INTERVAL_SECONDS = 1f;
 
     [Header("Ping Calculation")]
-    public CircularArray<float> sentFrameTimes = new CircularArray<float>(RollbackManager.InputArraySize);
+    public CircularArray<double> sentFrameTimes = new CircularArray<double>(RollbackManager.InputArraySize);
     public int Ping { get; private set; } = 100;
 
     private SteamId opponentSteamId;
@@ -149,8 +149,13 @@ public class MatchMessageManager : MonoBehaviour
     private OnlineMatchRoster activeRoster;
     private readonly Dictionary<SteamId, int> peerHighestRemoteFrameSeen = new Dictionary<SteamId, int>();
     private readonly Dictionary<SteamId, int> peerPingMs = new Dictionary<SteamId, int>();
+    // Raw RTT samples per peer (ring of RTT_SAMPLE_WINDOW, ~half a second of ACKs); peerPingMs is their median.
+    private const int RTT_SAMPLE_WINDOW = 32;
+    private readonly Dictionary<SteamId, int[]> peerRttSamples = new Dictionary<SteamId, int[]>();
+    private readonly Dictionary<SteamId, int> peerRttSampleCount = new Dictionary<SteamId, int>();
+    private readonly int[] rttMedianScratch = new int[RTT_SAMPLE_WINDOW];
     private readonly HashSet<SteamId> connectedPeers = new HashSet<SteamId>();
-    private readonly Dictionary<SteamId, CircularArray<float>> sentFrameTimesByPeer = new Dictionary<SteamId, CircularArray<float>>();
+    private readonly Dictionary<SteamId, CircularArray<double>> sentFrameTimesByPeer = new Dictionary<SteamId, CircularArray<double>>();
     private readonly Dictionary<SteamId, int> highestTimestampedInputFrameByPeer = new Dictionary<SteamId, int>();
     private int highestTimestampedLocalInputFrame = -1;
     private readonly Dictionary<SteamId, float> peerLastPacketTime = new Dictionary<SteamId, float>();
@@ -754,6 +759,8 @@ public class MatchMessageManager : MonoBehaviour
         connectedPeers.Clear();
         peerHighestRemoteFrameSeen.Clear();
         peerPingMs.Clear();
+        peerRttSamples.Clear();
+        peerRttSampleCount.Clear();
         peerLastPacketTime.Clear();
         peerLastHandshakeSendTime.Clear();
         sentFrameTimesByPeer.Clear();
@@ -783,7 +790,7 @@ public class MatchMessageManager : MonoBehaviour
             peerHighestRemoteFrameSeen[peer.SteamId] = -1;
             peerPingMs[peer.SteamId] = Ping;
             peerLastPacketTime[peer.SteamId] = now;
-            sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
+            sentFrameTimesByPeer[peer.SteamId] = new CircularArray<double>(RollbackManager.InputArraySize);
             highestTimestampedInputFrameByPeer[peer.SteamId] = -1;
             if (!opponentSteamId.IsValid)
             {
@@ -837,7 +844,7 @@ public class MatchMessageManager : MonoBehaviour
 
             if (!sentFrameTimesByPeer.ContainsKey(peer.SteamId))
             {
-                sentFrameTimesByPeer[peer.SteamId] = new CircularArray<float>(RollbackManager.InputArraySize);
+                sentFrameTimesByPeer[peer.SteamId] = new CircularArray<double>(RollbackManager.InputArraySize);
             }
 
             if (!highestTimestampedInputFrameByPeer.ContainsKey(peer.SteamId))
@@ -863,6 +870,8 @@ public class MatchMessageManager : MonoBehaviour
         PrunePeerSet(handshakeSeenFromPeers, rosterPeerIds);
         PrunePeerDictionary(peerHighestRemoteFrameSeen, rosterPeerIds);
         PrunePeerDictionary(peerPingMs, rosterPeerIds);
+        PrunePeerDictionary(peerRttSamples, rosterPeerIds);
+        PrunePeerDictionary(peerRttSampleCount, rosterPeerIds);
         PrunePeerDictionary(peerLastPacketTime, rosterPeerIds);
         PrunePeerDictionary(peerLastHandshakeSendTime, rosterPeerIds);
         PrunePeerDictionary(sentFrameTimesByPeer, rosterPeerIds);
@@ -974,6 +983,8 @@ public class MatchMessageManager : MonoBehaviour
         remoteReadyReceived.Clear();
         peerHighestRemoteFrameSeen.Clear();
         peerPingMs.Clear();
+        peerRttSamples.Clear();
+        peerRttSampleCount.Clear();
         peerLastPacketTime.Clear();
         peerLastHandshakeSendTime.Clear();
         sentFrameTimesByPeer.Clear();
@@ -1012,7 +1023,7 @@ public class MatchMessageManager : MonoBehaviour
         inboundQueue.Clear();
         peerHighestRemoteFrameSeen.Clear();
         peerContiguousAckByPeer.Clear();
-        foreach (CircularArray<float> peerTimes in sentFrameTimesByPeer.Values)
+        foreach (CircularArray<double> peerTimes in sentFrameTimesByPeer.Values)
         {
             peerTimes.Clear();
         }
@@ -2626,20 +2637,38 @@ public class MatchMessageManager : MonoBehaviour
     private void ProcessACK(SteamId senderSteamId, int frame)
     {
         if (frame < 0 // -1 = contiguity-only ACK, no RTT sample
-            || !sentFrameTimesByPeer.TryGetValue(senderSteamId, out CircularArray<float> peerSentFrameTimes))
+            || !sentFrameTimesByPeer.TryGetValue(senderSteamId, out CircularArray<double> peerSentFrameTimes))
         {
             return;
         }
 
-        float sentTime = peerSentFrameTimes.Get(frame);
-        if (sentTime <= 0f)
+        double sentTime = peerSentFrameTimes.Get(frame);
+        if (sentTime <= 0d)
         {
             return;
         }
 
-        int rttMs = Mathf.RoundToInt((Time.unscaledTime - sentTime) * 1000f);
-        peerPingMs[senderSteamId] = rttMs;
-        peerSentFrameTimes.Insert(frame, 0f);
+        int rttMs = Mathf.Max(0, (int)Math.Round((Time.realtimeSinceStartupAsDouble - sentTime) * 1000d));
+        peerSentFrameTimes.Insert(frame, 0d);
+
+        // Report the median of the recent window, not the last sample: a single slow ACK (e.g. one for
+        // a resend after a held frame, timed from the first send) used to swing time sync's predicted
+        // remote frame and, if it landed on an evaluation tick, the adaptive input delay.
+        if (!peerRttSamples.TryGetValue(senderSteamId, out int[] samples))
+        {
+            samples = new int[RTT_SAMPLE_WINDOW];
+            peerRttSamples[senderSteamId] = samples;
+        }
+
+        int taken = peerRttSampleCount.TryGetValue(senderSteamId, out int count) ? count : 0;
+        samples[taken % RTT_SAMPLE_WINDOW] = rttMs;
+        taken++;
+        peerRttSampleCount[senderSteamId] = taken;
+
+        int filled = Mathf.Min(taken, RTT_SAMPLE_WINDOW);
+        Array.Copy(samples, rttMedianScratch, filled);
+        Array.Sort(rttMedianScratch, 0, filled);
+        peerPingMs[senderSteamId] = rttMedianScratch[filled / 2];
     }
 
     private void RecordPeerContiguousAck(SteamId peerId, int timelineEpoch, int sceneSignature, int frame)
@@ -2950,7 +2979,9 @@ public class MatchMessageManager : MonoBehaviour
 
     private void RecordSentInputTimestamp(int frame)
     {
-        float now = Time.unscaledTime;
+        // Real time, not Time.unscaledTime: that is the frame-start time, so both ends of an RTT
+        // sample were off by up to one rendered frame (33ms each at 30fps).
+        double now = Time.realtimeSinceStartupAsDouble;
         if (frame > highestTimestampedLocalInputFrame)
         {
             sentFrameTimes.Insert(frame, now);
@@ -2969,9 +3000,9 @@ public class MatchMessageManager : MonoBehaviour
                 continue;
             }
 
-            if (!sentFrameTimesByPeer.TryGetValue(peer.SteamId, out CircularArray<float> peerTimes))
+            if (!sentFrameTimesByPeer.TryGetValue(peer.SteamId, out CircularArray<double> peerTimes))
             {
-                peerTimes = new CircularArray<float>(RollbackManager.InputArraySize);
+                peerTimes = new CircularArray<double>(RollbackManager.InputArraySize);
                 sentFrameTimesByPeer[peer.SteamId] = peerTimes;
             }
 
@@ -3186,6 +3217,8 @@ public class MatchMessageManager : MonoBehaviour
         handshakeSeenFromPeers.Remove(peerId);
         peerHighestRemoteFrameSeen.Remove(peerId);
         peerPingMs.Remove(peerId);
+        peerRttSamples.Remove(peerId);
+        peerRttSampleCount.Remove(peerId);
         peerLastPacketTime.Remove(peerId);
         peerLastHandshakeSendTime.Remove(peerId);
         sentFrameTimesByPeer.Remove(peerId);

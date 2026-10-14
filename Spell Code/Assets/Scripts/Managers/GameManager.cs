@@ -3754,6 +3754,25 @@ public class GameManager : MonoBehaviour
             {
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
+
+            // Gates and gambas live here (not in RunOnlineFrame) so rollback resim runs them, as the
+            // Shop does. Real-frame-only, a machine that rolled back skipped them for the resimulated
+            // frames: a cooling-down gamba's serialized resetTimer fell behind its peers' and the
+            // machine reactivated later, and any gate/gamba hit inside those frames never happened.
+            for (int i = 0; i < gates.Length; i++)
+            {
+                if (gates[i] != null)
+                {
+                    gates[i].SimulateOnline(!isRealFrame);
+                }
+            }
+
+            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+            {
+                if (gambaGO == null) continue;
+                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, !isRealFrame);
+            }
         }
         else if (activeScene.name == "Shop")
         {
@@ -3939,14 +3958,6 @@ public class GameManager : MonoBehaviour
                 MainMenuScreen.SetActive(false);
             }
 
-            for (int i = 0; i < gates.Length; i++)
-            {
-                if (gates[i] != null)
-                {
-                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
-                }
-            }
-
             // Handle spell selection for online players (only local and remote)
             //HandleOnlineSpellSelection();
 
@@ -3956,13 +3967,7 @@ public class GameManager : MonoBehaviour
             //if (onboardManager != null && !rbManager.isRollbackFrame)
             //    onboardManager.OnboardUpdate(syncedInput);
 
-            // Drive gamba machines through synced simulation (must run during rollback for RNG consistency)
-            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
-            {
-                if (gambaGO == null) continue;
-                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, rbManager.isRollbackFrame);
-            }
+            // Lobby gates and gambas are simulated in UpdateSceneLogic so rollback resim includes them.
 
             goDoorPrefab.CheckOpenDoor();
             goDoorPrefab.BroadcastSnapshotForNewOnlineEntries(rbManager.isRollbackFrame);

@@ -61,8 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-72"; // scz-72: lobby (MainMenu) gates + gambas moved into UpdateSceneLogic so rollback resim
-                                                    // runs them (cooling-down gamba resetTimer no longer lags on the machine that rolled back).
+    private const string NetcodeVersion = "scz-73"; // scz-73: Trap Card Trick (+Crit), Armory of Hephaestus anvil and Gift of Prometheus zero
+                                                    // hSpeed/vSpeed on spawn (pooled projectiles kept their in-flight speed into the next cast).
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

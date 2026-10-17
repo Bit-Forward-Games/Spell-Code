@@ -208,9 +208,12 @@ public class FloppyPickup : MonoBehaviour
                 inputSnapshot = InputConverter.ConvertFromLong(inputs[ownerIndex]);
             }
 
-            if (isRealFrame && selectHoldCounter == timeToFill)
+            // The description flag is saved/hashed sim state, so toggle it on every frame including
+            // rollback resim; only the animation is real-frame-only. Real-frame-only, a rollback that
+            // reached back past the frame the hold filled restored the old flag and never re-toggled.
+            if (selectHoldCounter == timeToFill)
             {
-                diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, true);
+                diskDisplay.SetDescriptionVisible(!diskDisplay.showDesc, isRealFrame);
             }
 
             if (inputSnapshot.ButtonStates[0] == ButtonState.Held)

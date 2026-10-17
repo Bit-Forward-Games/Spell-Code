@@ -121,7 +121,7 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
         [SerializeField] public int MultiplayerDirectionPredictionHoldMaxFrames = 4; // 3/4P online: cap for the stability-aware hold window. Prediction will hold the direction for at most this many frames even if the direction has been held for a long time. Tune against MaxRollBackFrames so rollback can always correct in time.
         [SerializeField] public int MultiplayerJumpButtonPredictionHoldFrames = 1; // Decay predicted jump button quickly so stuck "Held" doesn't drive variable jump / slide branches
         [SerializeField] public int MultiplayerPauseButtonPredictionHoldFrames = 0; // Decay predicted pause immediately - online pause is not networked anyway
-        [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Synthesize release if Code packets stall
+        [SerializeField] public int CodeButtonPredictionHoldFrames = 8; // Stop predicting a held Code button (-> None, never a fabricated Released) if Code packets stall
         [SerializeField] public int MultiplayerLobbyInputLeadFrames = 3; // Online lobby inputs are scheduled near-future to avoid rollback storms
 
         [Header("Adaptive Input Delay")]
@@ -2153,10 +2153,10 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             }
             else
             {
-                // Simple prediction: reuse the last known input
+                // Simple prediction: continue the last known input (see PredictRemoteInput)
                 // Store the *predicted* input we are using for this frame's simulation
                 opponentPredictedInputStreak++;
-                ulong predicted = DecayPredictedInput(opponentLastAppliedInput, opponentPredictedInputStreak, slot: -1);
+                ulong predicted = DecayPredictedInput(InputConverter.ConvertToSteadyState(opponentLastAppliedInput), opponentPredictedInputStreak, slot: -1);
                 opponentInputs.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
                 return predicted;
             }
@@ -2197,6 +2197,11 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
             int predictedStreak = remotePredictedInputStreakBySlot.TryGetValue(slot, out int streak) ? streak + 1 : 1;
             remotePredictedInputStreakBySlot[slot] = predictedStreak;
             ulong predicted = remoteLastAppliedInputBySlot.TryGetValue(slot, out ulong lastInput) ? lastInput : 5UL;
+            // Continue the last input the way a player actually continues it: Pressed -> Held,
+            // Released -> None. Repeating it verbatim re-pressed the button every predicted frame:
+            // a held spell button reset a floppy's hold meter, and a remote attack fired again and
+            // again (phantom gamba hits).
+            predicted = InputConverter.ConvertToSteadyState(predicted);
             predicted = DecayPredictedInput(predicted, predictedStreak, slot);
             usedBySlot.Insert(frame, new FrameMetadata() { frame = frame, input = predicted });
             return predicted;
@@ -2295,13 +2300,12 @@ using DiagnosticsStopwatch = System.Diagnostics.Stopwatch;
                 return input;
             }
 
+            // Stop predicting the hold, but never invent a Released: a release is an ACTION (floppy
+            // pickup, charged-spell fire) the player didn't perform. When it landed on the host's real
+            // frame, the host's authoritative lobby/Shop snapshot made it permanent, so a player still
+            // holding the button to read a spell description got the disk picked up for them.
             ButtonState codeState = (ButtonState)((input >> 8) & 0b11UL);
-            if (codeState is ButtonState.Pressed or ButtonState.Held)
-            {
-                return SetButtonState(input, 0, ButtonState.Released);
-            }
-
-            if (codeState == ButtonState.Released)
+            if (codeState != ButtonState.None)
             {
                 return SetButtonState(input, 0, ButtonState.None);
             }

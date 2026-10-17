@@ -61,8 +61,9 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-73"; // scz-73: Trap Card Trick (+Crit), Armory of Hephaestus anvil and Gift of Prometheus zero
-                                                    // hSpeed/vSpeed on spawn (pooled projectiles kept their in-flight speed into the next cast).
+    private const string NetcodeVersion = "scz-74"; // scz-74: remote input prediction continues buttons as steady state (Pressed->Held,
+                                                    // Released->None) and decays a stale held Code button to None, never a fabricated
+                                                    // Released; floppy hold-to-describe toggle runs in rollback resim too.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

@@ -39,8 +39,11 @@ public class ArmoryOfHephaestusAnvil_prj : BaseProjectile
         isGrounded = false;
         
         activeHitboxGroupIndex = 0;
-        //hSpeed = Fixed.FromInt(0); // Set horizontal speed based on facing direction
-        //vSpeed = Fixed.FromInt(0); // diagonal movement, so set vertical speed to match horizontal speed
+        // Start every cast from rest. Gravity/collisions change these in flight and pooled projectiles
+        // keep them, so the next cast fell already moving and after a rollback discarded a
+        // mispredicted cast, only on the machine that rolled back.
+        hSpeed = Fixed.FromInt(0);
+        //vSpeed = Fixed.FromInt(0);
     }
     public override void LoadProjectile()
     {

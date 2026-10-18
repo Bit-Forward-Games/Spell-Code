@@ -61,7 +61,7 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-74"; // -demo: Demo-New ships a trimmed SpellDictionary (28 spells) and stages[] (12 arenas), so spell ids and
+    private const string NetcodeVersion = "scz-74-demo"; // -demo: Demo-New ships a trimmed SpellDictionary (28 spells) and stages[] (12 arenas), so spell ids and
                                                     // stage indices differ from a full build with the same scz number. Keep the suffix when merging bumps in.
                                                     // scz-74: remote input prediction continues buttons as steady state (Pressed->Held,
                                                     // Released->None) and decays a stale held Code button to None, never a fabricated

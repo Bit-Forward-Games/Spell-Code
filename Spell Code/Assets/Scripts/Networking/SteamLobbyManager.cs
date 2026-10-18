@@ -61,12 +61,9 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-68-demo"; // -demo: Demo-New ships a trimmed SpellDictionary (28 spells) and stages[] (12 arenas), so spell ids and
-                                                    // stage indices differ from a full build with the same scz number. Keep the suffix when merging bumps in.
-                                                    // scz-68: Codemehameha becomes a real spell. SpellDictionary grows 58->59 (id 58) and projectileList 86->90
-                                                    // (Display/Lv1/Lv2/Lv3 appended at 86-89, so no existing id shifts). New serialized chargeLevel byte on the spell.
-                                                    // The Gamba DarkWeb pool now offers it to a player holding all four brands, so that pool's size (and the
-                                                    // spell GetNextRandom picks from it). Lv1's active window also ends later (16->24).
+    private const string NetcodeVersion = "scz-74"; // scz-74: remote input prediction continues buttons as steady state (Pressed->Held,
+                                                    // Released->None) and decays a stale held Code button to None, never a fabricated
+                                                    // Released; floppy hold-to-describe toggle runs in rollback resim too.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

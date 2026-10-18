@@ -30,6 +30,11 @@ public class TrapCardTrick_prj : BaseProjectile
     {
         base.SpawnProjectile(facingRight, spawnOffset);
         activeHitboxGroupIndex = 0;
+        // Start every cast from rest. Gravity and wall bounces (hSpeed +-3) change these in flight and
+        // pooled projectiles keep them, so the next card was placed already sliding/falling and
+        // after a rollback discarded a mispredicted cast, only on the machine that rolled back.
+        hSpeed = Fixed.FromInt(0);
+        vSpeed = Fixed.FromInt(0);
     }
 
     public override void LoadProjectile()

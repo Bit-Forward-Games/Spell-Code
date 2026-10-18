@@ -774,6 +774,15 @@ public class GameManager : MonoBehaviour
 
             PrivateBetaDebugHotkeys();
         }
+
+        // "." toggles the ping / rollback-frames readout. Gated separately from the debug keys above
+        // because it also ships to players (see SteamManager.NetworkInfoToggleEnabled). Punctuation so
+        // it can't collide with a gameplay binding mid-match; purely local presentation, nothing here
+        // is simulated or hashed, so reading it from Update is fine.
+        if (SteamManager.NetworkInfoToggleEnabled && UnityEngine.Input.GetKeyDown(KeyCode.Period))
+        {
+            ToggleNetworkInfoPanel();
+        }
     }
 
     /// <summary>
@@ -912,12 +921,27 @@ public class GameManager : MonoBehaviour
             SteamAchievements.ResetAllForTesting();
         }
 
-        // "." toggles the ping / rollback-frames readout. Punctuation like the rest of these keys so
-        // it can't collide with a gameplay binding while a match is running.
-        if (UnityEngine.Input.GetKeyDown(KeyCode.Period))
+        // ";" forces a desync on THIS machine only, to exercise the host resync. Nudges the local player
+        // and re-bases rollback history on the nudged state so an ordinary rollback can't quietly undo it.
+        // On a guest the host's resync should snap it back; on the host the guests should adopt the nudge.
+        if (isOnlineMatchActive
+            && UnityEngine.Input.GetKeyDown(KeyCode.Semicolon)
+            && SceneManager.GetActiveScene().name == "Gameplay"
+            && RollbackManager.Instance != null
+            && localPlayerIndex >= 0
+            && localPlayerIndex < players.Length
+            && players[localPlayerIndex] != null)
         {
-            ToggleNetworkInfoPanel();
+            PlayerController localPlayer = players[localPlayerIndex];
+            localPlayer.position = new FixedVec2(localPlayer.position.X + Fixed.FromInt(48), localPlayer.position.Y);
+            RollbackManager.Instance.ResetRollbackBaseline(frameNumber);
+            RollbackManager.Instance.SaveState();
+            Debug.LogWarning($"[DESYNC RESYNC] Debug: forced a local desync at frame {frameNumber} (P{localPlayerIndex + 1} nudged 48 units).");
         }
+
+        // "." (network-info toggle) is NOT here: it ships to the base game's default and testing
+        // branches too, so it has its own gate in Update. Keeping a copy here as well would make one
+        // press toggle twice -- i.e. do nothing -- on every branch where both gates are open.
     }
 
     /// <summary>
@@ -3730,6 +3754,25 @@ public class GameManager : MonoBehaviour
             {
                 SimulateOnlineFloppies(inputs, isRealFrame);
             }
+
+            // Gates and gambas live here (not in RunOnlineFrame) so rollback resim runs them, as the
+            // Shop does. Real-frame-only, a machine that rolled back skipped them for the resimulated
+            // frames: a cooling-down gamba's serialized resetTimer fell behind its peers' and the
+            // machine reactivated later, and any gate/gamba hit inside those frames never happened.
+            for (int i = 0; i < gates.Length; i++)
+            {
+                if (gates[i] != null)
+                {
+                    gates[i].SimulateOnline(!isRealFrame);
+                }
+            }
+
+            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
+            {
+                if (gambaGO == null) continue;
+                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
+                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, !isRealFrame);
+            }
         }
         else if (activeScene.name == "Shop")
         {
@@ -3762,6 +3805,17 @@ public class GameManager : MonoBehaviour
             if (isOnline)
             {
                 SimulateOnlineFloppies(inputs, isRealFrame);
+            }
+
+            // Gates live here (not in RunOnlineFrame) so a rollback resimulates them like the
+            // gamba above. Real-frame-only gates meant a machine that rolled back across a gate
+            // break skipped it, while a peer that didn't roll back kept the gate open.
+            for (int i = 0; i < gates.Length; i++)
+            {
+                if (gates[i] != null)
+                {
+                    gates[i].SimulateOnline(isRollback);
+                }
             }
         }
         else if (activeScene.name == "Gameplay")
@@ -3904,14 +3958,6 @@ public class GameManager : MonoBehaviour
                 MainMenuScreen.SetActive(false);
             }
 
-            for (int i = 0; i < gates.Length; i++)
-            {
-                if (gates[i] != null)
-                {
-                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
-                }
-            }
-
             // Handle spell selection for online players (only local and remote)
             //HandleOnlineSpellSelection();
 
@@ -3921,13 +3967,7 @@ public class GameManager : MonoBehaviour
             //if (onboardManager != null && !rbManager.isRollbackFrame)
             //    onboardManager.OnboardUpdate(syncedInput);
 
-            // Drive gamba machines through synced simulation (must run during rollback for RNG consistency)
-            foreach (GameObject gambaGO in GetValidGambaObjects(refreshIfNeeded: true))
-            {
-                if (gambaGO == null) continue;
-                GambaMachine gamba = gambaGO.GetComponent<GambaMachine>();
-                if (gamba != null) gamba.SimulateOnline(gamba.ownerPID - 1, rbManager.isRollbackFrame);
-            }
+            // Lobby gates and gambas are simulated in UpdateSceneLogic so rollback resim includes them.
 
             goDoorPrefab.CheckOpenDoor();
             goDoorPrefab.BroadcastSnapshotForNewOnlineEntries(rbManager.isRollbackFrame);
@@ -3945,16 +3985,7 @@ public class GameManager : MonoBehaviour
         {
             TickRoundEndTransition(!rbManager.isRollbackFrame);
         }
-        else if (activeScene.name == "Shop")
-        {
-            for (int i = 0; i < gates.Length; i++)
-            {
-                if (gates[i] != null)
-                {
-                    gates[i].SimulateOnline(rbManager.isRollbackFrame);
-                }
-            }
-        }
+        // Shop gates are simulated in UpdateSceneLogic so rollback resim includes them.
         //else if (activeScene.name == "Shop")
         //{
         //    if (!rbManager.isRollbackFrame)

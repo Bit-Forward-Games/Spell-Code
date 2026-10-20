@@ -61,9 +61,8 @@ public class SteamLobbyManager : MonoBehaviour
     // behavior changes. Matchmaking only
     // pairs clients whose "ver" matches, so an out-of-date player can never be matched into a
     // byte-incompatible match and desync on start (same reason both PCs must run the same build).
-    private const string NetcodeVersion = "scz-74"; // scz-74: remote input prediction continues buttons as steady state (Pressed->Held,
-                                                    // Released->None) and decays a stale held Code button to None, never a fabricated
-                                                    // Released; floppy hold-to-describe toggle runs in rollback resim too.
+    private const string NetcodeVersion = "scz-75"; // scz-75: online gamba reactivates after 60 frames like offline (was 120), shared
+                                                    // GambaMachine.reactivateAfterFrames; online paths also honor the cooldown flag.
 
     private const string MatchmakingKey = "mm";
     private const string VersionKey = "ver";

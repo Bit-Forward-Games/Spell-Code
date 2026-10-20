@@ -60,6 +60,10 @@ public class GambaMachine : MonoBehaviour
     //parks the label on a number high enough to read as "keep rolling" rather than counting down
     private const int maxShopRolls = 3;
     private const int chaosSpellChoiceCount = 6;
+    // Frames after a hit before the machine can be hit again (reactivates once resetTimer exceeds it).
+    // Shared by the offline FixedUpdate and both online paths: online used to wait 120 here, so a
+    // reroll took twice as long as offline.
+    private const byte reactivateAfterFrames = 60;
     private const string infiniteRollsLabel = "99";
 
     public GameObject floppy;
@@ -675,7 +679,7 @@ public class GambaMachine : MonoBehaviour
             //Debug.Log("GAMBA RESET TIMER GOING");
             resetTimer++;
 
-            if (resetTimer > 60)
+            if (resetTimer > reactivateAfterFrames)
             {
                 isActive = true;
                 resetTimer = 0;
@@ -741,11 +745,11 @@ public class GambaMachine : MonoBehaviour
             SimulateShopOnline(isRollback);
         }
 
-        if (activeScene.name != "Shop" && !isActive && activatedCount < 3)
+        if (activeScene.name != "Shop" && !isActive && activatedCount < 3 && cooldown)
         {
             resetTimer++;
 
-            if (resetTimer > 120)
+            if (resetTimer > reactivateAfterFrames)
             {
                 isActive = true;
                 resetTimer = 0;
@@ -806,10 +810,10 @@ public class GambaMachine : MonoBehaviour
             }
         }
 
-        if (!isActive && activatedCount < 3)
+        if (!isActive && activatedCount < 3 && cooldown)
         {
             resetTimer++;
-            if (resetTimer > 120)
+            if (resetTimer > reactivateAfterFrames)
             {
                 isActive = true;
                 resetTimer = 0;

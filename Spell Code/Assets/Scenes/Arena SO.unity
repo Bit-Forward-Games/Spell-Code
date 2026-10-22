@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a56beb1570b3e5b4e88fa5a109951a5a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::ArenaBoundRenderer
-  _stageDataSO: {fileID: 11400000, guid: e5dcbd89f5b59a042bedf2b9686554aa, type: 2}
+  _stageDataSO: {fileID: 11400000, guid: 9886b773f352e864fa3adbd91a263155, type: 2}
   _renderBorders: 1
   _renderCameraBorders: 0
 --- !u!4 &776632903
@@ -230,7 +230,7 @@ Camera:
   far clip plane: 1000
   field of view: 60
   orthographic: 1
-  orthographic size: 126.5
+  orthographic size: 93
   m_Depth: -1
   m_CullingMask:
     serializedVersion: 2

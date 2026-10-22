@@ -159,6 +159,9 @@ MonoBehaviour:
   - visualEffectName: 42
     particleSystemPrefab: {fileID: 5475398249184600050, guid: 56e47f9c8fba24e47942b77bb48e8d04, type: 3}
     numParticleSystemsPerPlayer: 1
+  - visualEffectName: 43
+    particleSystemPrefab: {fileID: 5475398249184600050, guid: c89eb6c859b390c4f98f256354278d77, type: 3}
+    numParticleSystemsPerPlayer: 1
   spellVisualEffectObjects: []
   trailObjects:
   - trailName: 29

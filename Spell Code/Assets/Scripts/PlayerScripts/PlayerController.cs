@@ -3192,17 +3192,17 @@ public class PlayerController : MonoBehaviour
         //play the jump sound
         SFX_Manager.Instance.PlaySound(Sounds.JUMP);
 
-        //if the player is single jumping,...
-        if(jumpCount > 0 && (input.ButtonStates[1] == ButtonState.Pressed || ((tapJump ? input.Direction > 6 : false) && tapJumpPrimed)))
-        {
-            //play the jump dust VFX
-            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
-        }
-        //else the player is double jumping,...
-        else
+        //if jumpCount is less than maxJumpCount (the player has jumped once),...
+        if (jumpCount < maxJumpCount - 1)
         {
             //play the double jump dust VFX
             VFX_Manager.Instance.PlayVisualEffect(VisualEffects.DOUBLE_JUMP_DUST, position, pID, facingRight);
+        }
+        //else the player has NOT jumped once,...
+        else
+        {
+            //play the jump dust VFX
+            VFX_Manager.Instance.PlayVisualEffect(VisualEffects.JUMP_DUST, position, pID, facingRight);
         }
 
         SetState(PlayerState.Jump);

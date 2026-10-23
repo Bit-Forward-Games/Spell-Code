@@ -44,8 +44,15 @@ public sealed class BotPlatformNavigator
         public float cost;
     }
 
+    // See DropTakeoff.
+    private const float DropClearance = 7f;
+
     private readonly List<Box> solids = new List<Box>();
     private readonly List<Surface> surfaces = new List<Surface>();
+    // Both ends of every portal pair. Feet coming within PortalRadius of one -- from outside it --
+    // teleport the body to the other end (PlayerController's #region PORTALS).
+    private readonly List<Vector2> portals = new List<Vector2>();
+    public const float PortalRadius = 40f;
     private List<Edge>[] graph;
     private float[] distances;
     private bool[] visited;
@@ -54,6 +61,8 @@ public sealed class BotPlatformNavigator
     private StageDataSO cachedStage;
     private int geometryHash;
     private float halfWidth, height, jumpSpeed, gravity, runSpeed;
+    // Cost, in ticks, of the route the last successful TryGetNextStep found. See TryRouteLength.
+    private float lastRouteCost;
     private int maxJumps;
     private bool boundedX, boundedY;
     private float minX, maxX, minY, maxY;
@@ -108,6 +117,7 @@ public sealed class BotPlatformNavigator
         {
             step = MakeStep(Kind.Walk, position, new Vector2(
                 Mathf.Clamp(target.x, surfaces[goal].left, surfaces[goal].right), surfaces[goal].y), start, goal, 0);
+            lastRouteCost = Mathf.Abs(target.x - position.x) / runSpeed;
             return true;
         }
 
@@ -126,6 +136,7 @@ public sealed class BotPlatformNavigator
             if (current < 0 || float.IsPositiveInfinity(distances[current])) break;
             if (current == goal)
             {
+                lastRouteCost = distances[goal] + Mathf.Abs(incoming[goal].landing.x - target.x) / runSpeed;
                 while (previous[current] != start && previous[current] >= 0) current = previous[current];
                 step = incoming[current];
                 return true;
@@ -150,11 +161,25 @@ public sealed class BotPlatformNavigator
     /// graph can't place counts as reachable, so a gap in the model never makes a bot give up.
     /// </summary>
     public bool CanReach(StageDataSO stage, Vector2 position, Vector2 target,
-        float halfWidth, float height, float jumpSpeed, float gravity, float runSpeed, int maxJumps)
+        float halfWidth, float height, float jumpSpeed, float gravity, float runSpeed, int maxJumps) =>
+        TryRouteLength(stage, position, target, halfWidth, height, jumpSpeed, gravity, runSpeed, maxJumps, out _);
+
+    /// <summary>
+    /// CanReach, also giving how far away the target is along the route, in units of distance: the
+    /// route's cost in ticks at running speed. Where the graph can't judge, the plain horizontal gap.
+    /// Unlike the screen-space gap this goes the way the bot would actually go -- round a wall, up a
+    /// floor, out through a loop border -- so someone overhead with no quick way up isn't "close".
+    /// </summary>
+    public bool TryRouteLength(StageDataSO stage, Vector2 position, Vector2 target,
+        float halfWidth, float height, float jumpSpeed, float gravity, float runSpeed, int maxJumps, out float length)
     {
+        length = Mathf.Abs(target.x - position.x);
         if (TryGetNextStep(stage, position, target, halfWidth, height, jumpSpeed, gravity, runSpeed,
                 maxJumps, out _))
+        {
+            length = lastRouteCost * runSpeed;
             return true;
+        }
         // A false above has already built the graph for these parameters, unless its inputs were
         // unusable -- in which case there is nothing to judge by.
         if (stage == null || cachedStage != stage) return true;
@@ -206,6 +231,12 @@ public sealed class BotPlatformNavigator
         {
             Vector2 c = stage.solidCenter[i], e = stage.solidExtent[i];
             solids.Add(new Box { left = c.x - e.x, right = c.x + e.x, bottom = c.y - e.y, top = c.y + e.y });
+        }
+        portals.Clear();
+        for (int i = 0; i < PairCount(stage.portalAs, stage.portalBs); i++)
+        {
+            portals.Add(stage.portalAs[i]);
+            portals.Add(stage.portalBs[i]);
         }
         AddSurfaces(stage.solidCenter, stage.solidExtent, false);
         AddSurfaces(stage.platformCenter, stage.platformExtent, true);
@@ -355,7 +386,7 @@ public sealed class BotPlatformNavigator
         {
             if (a.oneWay)
                 foreach (float x in candidates)
-                    if (TryArc(from, to, Kind.Drop, x, 0, out step, out duration, viaWrap)) return true;
+                    if (TryArc(from, to, Kind.Drop, DropTakeoff(x, a), 0, out step, out duration, viaWrap)) return true;
             // Walk off only when a simulated fall ends on a known lower surface.
             float[] edges = { a.physicalLeft - halfWidth - 3f, a.physicalRight + halfWidth + 3f };
             foreach (float x in edges)
@@ -374,8 +405,13 @@ public sealed class BotPlatformNavigator
         return false;
     }
 
+    // How late the bot can start steering after leaving the ground: the takeoff tick itself is neutral,
+    // the air lerp only moves every fourth tick from whatever phase its counter is in, and a drop holds
+    // straight down until the feet are through the platform.
+    private const int LateSteerTicks = 5;
+
     private bool TryArc(int from, int to, Kind kind, float startX, int jumps,
-        out Step step, out float duration, bool viaWrap = false)
+        out Step step, out float duration, bool viaWrap = false, int steerDelay = 0)
     {
         Surface a = surfaces[from], b = surfaces[to];
         float landingInset = Mathf.Min(6f, (b.right - b.left) * 0.25f);
@@ -386,6 +422,8 @@ public sealed class BotPlatformNavigator
         bool clearedLedge = false, crossedX = false;
         step = default(Step);
         duration = 0f;
+        if (kind == Kind.Drop && HeldUpBySolid(startX, a.y, 0f)) return false;
+        bool inPortal = InPortal(startX, a.y);
         for (int tick = 0; tick < 240; tick++)
         {
             if (remaining > 0 && velocity <= 0f)
@@ -405,7 +443,7 @@ public sealed class BotPlatformNavigator
                     : startX > b.physicalRight ? b.physicalRight + halfWidth + 3f : startX;
             // Match the input controller's air acceleration and neutral braking. A full-speed
             // ballistic arc would incorrectly accept narrow ledges reached from a standing jump.
-            float offset = viaWrap ? WrapDeltaX(x, steerX) : steerX - x;
+            float offset = tick < steerDelay ? 0f : viaWrap ? WrapDeltaX(x, steerX) : steerX - x;
             float speed = Mathf.Abs(horizontalSpeed);
             bool braking = Mathf.Abs(offset) <= 4f
                 || (horizontalSpeed * offset > 0f && Mathf.Abs(offset) <= speed * (speed + 1f) * 1.5f);
@@ -444,6 +482,12 @@ public sealed class BotPlatformNavigator
                 if (landed >= 0)
                 {
                     if (landed != to || remaining > 0) return false;
+                    // Only arcs that still land there when the steering starts late. On DoubleShoot a
+                    // double jump planned to clip a ceiling block's corner and bonk off it onto the
+                    // middle platform; a few ticks late, the bot slid up the block's side instead, out
+                    // through the top border and back down where it started, then planned it again.
+                    if (steerDelay == 0 && kind != Kind.Fall
+                        && !TryArc(from, to, kind, startX, jumps, out _, out _, viaWrap, LateSteerTicks)) return false;
                     step = MakeStep(kind, new Vector2(startX, a.y), new Vector2(landingX, b.y), from, to, jumps);
                     step.wrapsX = crossedX;
                     duration = tick + 1;
@@ -460,6 +504,12 @@ public sealed class BotPlatformNavigator
                 if (y > loopMaxY) y = loopMinY;
                 else if (y < loopMinY) y = loopMaxY;
             }
+            // An arc that passes into a portal ends at the other end of it, not where it was going:
+            // on MiniDiagonal the drop to the floor fell into the floor's portal, came out on the top
+            // platform and was planned again, forever.
+            bool nowInPortal = InPortal(x, y);
+            if (nowInPortal && !inPortal) return false;
+            inPortal = nowInPortal;
             velocity -= velocity > 0f ? gravity : gravity * 0.5f;
         }
         return false;
@@ -468,10 +518,15 @@ public sealed class BotPlatformNavigator
     private bool CanWalk(float from, float to, float y, bool allowLeaving = false)
     {
         int samples = Mathf.CeilToInt(Mathf.Abs(to - from) / 8f) + 1;
+        bool inPortal = InPortal(from, y);
         for (int i = 0; i <= samples; i++)
         {
             float x = from + (to - from) * i / samples;
             if (boundedX && (x < minX || x > maxX)) return false;
+            // Walking into a portal is a teleport, not a walk. Walking out of the one it arrived in is fine.
+            bool nowInPortal = InPortal(x, y);
+            if (nowInPortal && !inPortal) return false;
+            inPortal = nowInPortal;
             foreach (Box box in solids)
                 if (box.top > y + 1f && box.bottom < y + height - 1f
                     && box.left < x + halfWidth && box.right > x - halfWidth) return false;
@@ -479,6 +534,49 @@ public sealed class BotPlatformNavigator
         }
         return true;
     }
+
+    /// <summary>
+    /// True when a solid whose top is level with y holds up a body at x. The collision pass's overlap
+    /// test is inclusive, so merely touching the solid's edge counts as standing on it -- and down+jump
+    /// only drops through platforms. A one-way platform butted up against a solid at its own height
+    /// (TwoValve, BigAntHill, BigConnectedRooms) therefore can't be dropped from anywhere near the join.
+    /// </summary>
+    private bool HeldUpBySolid(float x, float y, float clearance)
+    {
+        foreach (Box box in solids)
+            if (Mathf.Abs(box.top - y) < 1f
+                && x + halfWidth + clearance >= box.left && x - halfWidth - clearance <= box.right)
+                return true;
+        return false;
+    }
+
+    /// <summary>
+    /// A drop takeoff near x that keeps the body DropClearance away from any solid level with the
+    /// platform. NpcAI drops anywhere within 5 of a planned takeoff, so the clearance has to be wider
+    /// than that: a takeoff 2 from a solid had the bot stop 2 past it, touching, and stand there
+    /// pressing down+jump forever.
+    /// </summary>
+    private float DropTakeoff(float x, Surface a)
+    {
+        foreach (Box box in solids)
+        {
+            if (Mathf.Abs(box.top - a.y) >= 1f) continue;
+            if (box.right <= x) x = Mathf.Max(x, box.right + halfWidth + DropClearance);
+            else if (box.left >= x) x = Mathf.Min(x, box.left - halfWidth - DropClearance);
+        }
+        return Mathf.Clamp(x, a.left, a.right);
+    }
+
+    private bool InPortal(float x, float y)
+    {
+        foreach (Vector2 portal in portals)
+            if ((x - portal.x) * (x - portal.x) + (y - portal.y) * (y - portal.y) <= PortalRadius * PortalRadius)
+                return true;
+        return false;
+    }
+
+    /// <summary>True when down+jump at x actually drops through the platform underfoot.</summary>
+    public bool CanDropFrom(float x, float y) => !HeldUpBySolid(x, y, 0f);
 
     private bool Supported(float x, float y)
     {
@@ -529,6 +627,8 @@ public sealed class BotPlatformNavigator
             hash = HashArray(hash, stage.solidExtent);
             hash = HashArray(hash, stage.platformCenter);
             hash = HashArray(hash, stage.platformExtent);
+            hash = HashArray(hash, stage.portalAs);
+            hash = HashArray(hash, stage.portalBs);
             return hash;
         }
     }

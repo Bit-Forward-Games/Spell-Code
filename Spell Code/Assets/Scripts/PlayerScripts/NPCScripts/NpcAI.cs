@@ -87,6 +87,13 @@ public abstract class NpcAI : MonoBehaviour
     /// <summary>Signed vertical offset to the target. Positive means the target is above.</summary>
     protected float TargetOffsetY { get; private set; }
 
+    /// <summary>
+    /// Signed vertical offset to the ground the target stands on, or last stood on while they're in
+    /// the air (see Footing). This, not TargetOffsetY, is what decides whether to change levels: a
+    /// target hopping on the bot's own floor is not somewhere to climb to.
+    /// </summary>
+    protected float TargetFootingOffsetY { get; private set; }
+
     protected float TargetDistanceX => Mathf.Abs(TargetOffsetX);
 
     protected bool TargetIsGrounded { get; private set; }
@@ -147,25 +154,33 @@ public abstract class NpcAI : MonoBehaviour
     /// Judged from the surface underfoot, so in mid-air it answers true rather than writing every
     /// opponent off.
     /// </summary>
-    protected bool CanReach(PlayerController candidate)
+    protected bool CanReach(PlayerController candidate) => TryRouteDistance(candidate, out _);
+
+    /// <summary>
+    /// CanReach, also giving how far the candidate is along the route there rather than straight
+    /// across the screen (BotPlatformNavigator.TryRouteLength). In mid-air, the horizontal gap.
+    /// </summary>
+    protected bool TryRouteDistance(PlayerController candidate, out float distance)
     {
+        distance = 0f;
         if (owner == null || candidate == null)
         {
             return false;
         }
 
+        distance = Mathf.Abs(candidate.position.X.ToFloat() - owner.position.X.ToFloat());
         StageDataSO stage = Stage;
         if (stage == null || !IsGrounded)
         {
             return true;
         }
 
-        return platformNavigator.CanReach(stage,
+        return platformNavigator.TryRouteLength(stage,
             new Vector2(owner.position.X.ToFloat(), owner.position.Y.ToFloat()),
-            new Vector2(candidate.position.X.ToFloat(), candidate.position.Y.ToFloat()),
+            Footing(candidate),
             owner.playerWidth.ToFloat() * 0.5f, owner.playerHeight.ToFloat(),
             owner.jumpForce.ToFloat(), PlayerController.baseGravity, owner.runSpeed.ToFloat(),
-            owner.maxJumpCount);
+            owner.maxJumpCount, out distance);
     }
 
     /// <summary>
@@ -196,6 +211,124 @@ public abstract class NpcAI : MonoBehaviour
             && (step.landing.x - position.x) * (target.x - position.x) >= 0f;
     }
 
+    // Where each player in GameManager.players last stood, slot for slot. See Footing.
+    private struct FootingRecord
+    {
+        public PlayerController player;
+        public Vector2 position;
+        public int airborneFrames;
+    }
+
+    private readonly FootingRecord[] footings = new FootingRecord[4];
+
+    // How long a player can be off the ground before where they last stood stops meaning anything --
+    // a knockback across the stage, a fall through a loop border, a respawn. Longer than a full double
+    // jump, which is about 110 frames up and back down.
+    private const int FootingMemoryFrames = 150;
+
+    // How far below where they last stood a falling player has to be before they count as having left
+    // that level, rather than coming back down from a hop onto it.
+    private const float FootingLeftBelow = 24f;
+
+    /// <summary>
+    /// Where a player is standing, or while they're in the air, where they last stood. Every jump a
+    /// target made used to put them over the climb threshold for half a second, so the bot planned a
+    /// climb to wherever they were in mid-air -- on their own floor, that's a jump straight up at them,
+    /// once per hop, for as long as they kept hopping. A target jumping up somewhere new gets followed
+    /// once they land there; one falling past where they stood has left it, so that's where they are.
+    /// </summary>
+    protected Vector2 Footing(PlayerController player)
+    {
+        Vector2 current = new Vector2(player.position.X.ToFloat(), player.position.Y.ToFloat());
+        for (int i = 0; i < footings.Length; i++)
+        {
+            if (footings[i].player != player)
+            {
+                continue;
+            }
+
+            // How far below where they stood, the short way round a loop stage: a hop off TrueBattlefeild's
+            // top platform goes out through the top border and comes back in at the bottom, which read
+            // as having fallen the whole stage, and the bot dropped away every time it got up there.
+            float below = footings[i].position.y - current.y;
+            StageDataSO stage = Stage;
+            if (stage != null && stage.borderType == BorderType.Loop && stage.borderMax.y > stage.borderMin.y)
+            {
+                float height = stage.borderMax.y - stage.borderMin.y;
+                if (below > height * 0.5f) below -= height;
+                else if (below < -height * 0.5f) below += height;
+            }
+
+            return footings[i].airborneFrames < FootingMemoryFrames && below <= FootingLeftBelow
+                ? footings[i].position : current;
+        }
+
+        return current;
+    }
+
+    // Longest a bot holds its ground for another bot that's on its way. See YieldsToTarget.
+    private const int MaxYieldFrames = 240;
+    private int yieldFrames;
+    private int lastYieldCheckTick = -2;
+    private int ticks;
+
+    /// <summary>Ticks this behaviour has run, for timing decisions in ticks.</summary>
+    protected int Ticks => ticks;
+
+    /// <summary>
+    /// True when this bot should hold its ground and let its target come to it: the target is another
+    /// bot, already routing its way to this one. Two bots that each take the route to the other pass
+    /// on the way and swap places, over and over -- on Loopfield one went down as the other came up,
+    /// on BigBattlefeild they jumped the same gap in opposite directions, for the whole match, landing
+    /// about eight hits in thirty seconds. Only one of the two can yield, so the higher slot does, and
+    /// only for so long: if the other never arrives (stuck, or after someone else after all), it goes
+    /// after them anyway. Call it only where the bot is about to route to its target.
+    /// </summary>
+    protected bool YieldsToTarget(float climbThreshold)
+    {
+        if (ticks != lastYieldCheckTick + 1)
+        {
+            yieldFrames = 0;
+        }
+
+        lastYieldCheckTick = ticks;
+        NpcAI other = HasTarget && Target.isBot ? Target.npcAI : null;
+        bool yields = other != null && other.Target == owner && owner.pID > Target.pID
+            && (other.IsNavigating || Mathf.Abs(other.TargetFootingOffsetY) > climbThreshold);
+        yieldFrames = yields ? yieldFrames + 1 : 0;
+        return yields && yieldFrames <= MaxYieldFrames;
+    }
+
+    private void UpdateFootings()
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null || gameManager.players == null)
+        {
+            return;
+        }
+
+        int count = Mathf.Min(Mathf.Min(gameManager.playerCount, gameManager.players.Length), footings.Length);
+        for (int i = 0; i < footings.Length; i++)
+        {
+            PlayerController player = i < count ? gameManager.players[i] : null;
+            if (player == null)
+            {
+                footings[i] = default(FootingRecord);
+                continue;
+            }
+
+            Vector2 position = new Vector2(player.position.X.ToFloat(), player.position.Y.ToFloat());
+            if (footings[i].player != player || player.isGrounded)
+            {
+                footings[i] = new FootingRecord { player = player, position = position, airborneFrames = player.isGrounded ? 0 : FootingMemoryFrames };
+            }
+            else if (footings[i].airborneFrames < FootingMemoryFrames)
+            {
+                footings[i].airborneFrames++;
+            }
+        }
+    }
+
     private void RefreshPerception()
     {
         Target = SelectTarget();
@@ -203,6 +336,7 @@ public abstract class NpcAI : MonoBehaviour
         {
             TargetOffsetX = 0f;
             TargetOffsetY = 0f;
+            TargetFootingOffsetY = 0f;
             TargetIsGrounded = false;
             TargetState = PlayerState.Idle;
             TargetFacingRight = false;
@@ -212,6 +346,7 @@ public abstract class NpcAI : MonoBehaviour
 
         TargetOffsetX = Target.position.X.ToFloat() - owner.position.X.ToFloat();
         TargetOffsetY = Target.position.Y.ToFloat() - owner.position.Y.ToFloat();
+        TargetFootingOffsetY = Footing(Target).y - owner.position.Y.ToFloat();
         TargetIsGrounded = Target.isGrounded;
         TargetState = Target.state;
         TargetFacingRight = Target.facingRight;
@@ -317,11 +452,27 @@ public abstract class NpcAI : MonoBehaviour
         return HasGroundAt(stepX, footY) || HasGroundAt(stepX, footY + 96f);
     }
 
-    /// <summary>True when there is nothing to land on directly below the owner.</summary>
+    /// <summary>
+    /// True when there is nothing to land on directly below the owner. On a stage with a floor border
+    /// that's all the way down to it, not just probeDepth: Diagonal's top platform sits 224 over the
+    /// next one down, so a planned drop off it read as falling into nothing, and the recovery jump
+    /// put the bot straight back up there.
+    /// </summary>
     protected bool OverAVoid(float probeDepth = 160f)
     {
-        return owner != null
-            && !HasGroundAt(owner.position.X.ToFloat(), owner.position.Y.ToFloat(), probeDepth);
+        if (owner == null)
+        {
+            return false;
+        }
+
+        StageDataSO stage = Stage;
+        float y = owner.position.Y.ToFloat();
+        if (stage != null && stage.borderType != BorderType.Loop && stage.borderMax.y > stage.borderMin.y)
+        {
+            probeDepth = Mathf.Max(probeDepth, y - stage.borderMin.y);
+        }
+
+        return !HasGroundAt(owner.position.X.ToFloat(), y, probeDepth);
     }
 
     protected bool IsFalling => owner != null && owner.vSpd.ToFloat() < 0f;
@@ -419,7 +570,47 @@ public abstract class NpcAI : MonoBehaviour
             return false;
         }
 
-        return !WallAhead(numpadDirection) && HasGroundAt(stepX, owner.position.Y.ToFloat(), 8f);
+        return !WallAhead(numpadDirection) && !PortalAhead(numpadDirection)
+            && HasGroundAt(stepX, owner.position.Y.ToFloat(), 8f);
+    }
+
+    /// <summary>
+    /// True when a step this way walks the owner's feet into a portal it isn't already stood in, which
+    /// teleports it to the other end. Several arenas make whole platforms into portal pads (Clover's
+    /// shelves, MiniDiagonal's top-left platform), so plain spacing and backing off walked bots onto
+    /// them by accident. Same radius and reference point as PlayerController's #region PORTALS.
+    ///
+    /// Looks as far ahead as the owner would slide stopping from its current speed: a unit of speed
+    /// sheds every four ground frames, plus the frame Run takes to hand over to Idle, so from full run
+    /// that's 27 -- a fixed 28 still let a retreating bot brake to a stop inside the pad.
+    /// </summary>
+    protected bool PortalAhead(int numpadDirection)
+    {
+        StageDataSO stage = Stage;
+        if (owner == null || stage == null || stage.portalAs == null || stage.portalBs == null
+            || numpadDirection % 3 == 2)
+        {
+            return false;
+        }
+
+        float x = owner.position.X.ToFloat();
+        float y = owner.position.Y.ToFloat();
+        float speed = Mathf.Abs(owner.hSpd.ToFloat());
+        float lookAhead = 2f * speed * (speed + 1f) + speed + 6f;
+        float stepX = x + (numpadDirection % 3 == 0 ? lookAhead : -lookAhead);
+        float radiusSquared = BotPlatformNavigator.PortalRadius * BotPlatformNavigator.PortalRadius;
+        int count = Mathf.Min(stage.portalAs.Length, stage.portalBs.Length);
+        for (int i = 0; i < count * 2; i++)
+        {
+            Vector2 portal = i < count ? stage.portalAs[i] : stage.portalBs[i - count];
+            float aheadX = stepX - portal.x, hereX = x - portal.x, dy = y - portal.y;
+            if (aheadX * aheadX + dy * dy <= radiusSquared && hereX * hereX + dy * dy > radiusSquared)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /// <summary>
@@ -507,6 +698,18 @@ public abstract class NpcAI : MonoBehaviour
 
         Vector2 position = new Vector2(owner.position.X.ToFloat(), owner.position.Y.ToFloat());
         StageDataSO stage = Stage;
+
+        // Before the checks below, which only apply to a step that hasn't left the ground yet. A drop
+        // runs from ContinuePlatformDrop, so the first call back here is already in mid-air; checking
+        // first threw the step away as soon as the target had moved a little meanwhile, and with no
+        // step left the airborne recovery jumped the bot back up onto the platform it had just dropped
+        // through.
+        if (hasNavigationStep && !IsGrounded && !navigationAirborne)
+        {
+            navigationAirborne = true;
+            navigationFrames = 0;
+        }
+
         if (navigationStage != stage || State == PlayerState.Hitstun || State == PlayerState.Tech
             || (hasNavigationStep && ++navigationFrames > 180)
             || (hasNavigationStep && !navigationAirborne && (target - navigationGoal).sqrMagnitude > 4096f))
@@ -514,11 +717,6 @@ public abstract class NpcAI : MonoBehaviour
             StopNavigation();
         }
 
-        if (hasNavigationStep && !IsGrounded && !navigationAirborne)
-        {
-            navigationAirborne = true;
-            navigationFrames = 0;
-        }
         if (hasNavigationStep && navigationAirborne && IsGrounded)
         {
             StopNavigation();
@@ -560,7 +758,13 @@ public abstract class NpcAI : MonoBehaviour
 
             if (navigationStep.kind == BotPlatformNavigator.Kind.Walk)
             {
-                SteerTowardX(navigationStep.landing.x, arriveWithin);
+                // arriveWithin is slack around the goal. A walk that only leads to the next surface of
+                // the route has to actually get there: a bot stood on BrokenMirror's little ledge block
+                // 11 short of the platform it planned to jump from counted itself arrived, and stood
+                // there replanning the same walk for as long as its target stayed upstairs.
+                bool walkEndsAtGoal = Mathf.Abs(navigationStep.landing.x - target.x) <= arriveWithin
+                    && Mathf.Abs(navigationStep.landing.y - target.y) <= heightTolerance;
+                SteerTowardX(navigationStep.landing.x, walkEndsAtGoal ? arriveWithin : 2f);
                 // Some disks hover above their supporting floor rather than resting on it. Only that
                 // short way up, though: a player a floor or two overhead is reached by the route, and
                 // jumping at them from underneath is a hop loop against the ceiling between.
@@ -599,6 +803,15 @@ public abstract class NpcAI : MonoBehaviour
                 && platformNavigator.TryTakeOffFrom(navigationStep, position.x, out BotPlatformNavigator.Step fromHere))
             {
                 navigationStep = fromHere;
+            }
+
+            // Inside the drop window but touching a solid level with the platform, which holds the body
+            // up: down+jump does nothing from here, and used to be retried forever. Close in on the
+            // planned takeoff instead, which the planner keeps clear of it.
+            if (navigationStep.kind == BotPlatformNavigator.Kind.Drop
+                && !platformNavigator.CanDropFrom(position.x, position.y))
+            {
+                takeoffTolerance = 0f;
             }
 
             if (Mathf.Abs(position.x - navigationStep.takeoff.x) > takeoffTolerance)
@@ -1438,6 +1651,9 @@ public abstract class NpcAI : MonoBehaviour
         {
             owner = gameObject.GetComponent<PlayerController>();
         }
+
+        ticks++;
+        UpdateFootings();
 
         if (framesUntilPerception <= 0)
         {

@@ -37,6 +37,10 @@ public sealed class PlayerController
     public List<SpellData> spellList = new();
     public BotDifficulty botDifficulty = BotDifficulty.Medium;
     public bool vibeCoding;
+    public bool isBot;
+    public NpcAI npcAI;
+    public byte portalCooldown;
+    public bool portalPrimed = true;
     public static int GetSpellInputLength(SpellData spell) => (int)(spell.spellInput & 15);
 }
 public sealed class GameManager

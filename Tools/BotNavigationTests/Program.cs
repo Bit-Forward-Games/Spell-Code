@@ -4,9 +4,116 @@ internal static class Program
 {
     private const float HalfWidth = 20f, Height = 48f, JumpSpeed = 10f, Gravity = 0.45f, RunSpeed = 4f;
     private static int failed;
+    private static bool Trace;
+    private static int TraceBot;
 
-    public static int Main()
+    public static int Main(string[] args)
     {
+        // dotnet run -- trace <arena> <botSpawn> <targetSpawn> [ticks]: one arena chase, logged tick by tick.
+        if (args.Length >= 4 && args[0] == "trace")
+        {
+            var arena = AllArenas().First(a => a.name == args[1]);
+            Trace = true;
+            var result = ArenaChase(arena.stage, arena.stage.playerSpawnTransform[int.Parse(args[2])],
+                arena.stage.playerSpawnTransform[int.Parse(args[3])], ticks: args.Length > 4 ? int.Parse(args[4]) : 900);
+            Console.WriteLine(result);
+            return 0;
+        }
+        // dotnet run -- traceroam <arena> <botSpawn> <targetSpawn> [hop] [ticks]: one moving-target chase, logged.
+        if (args.Length >= 4 && args[0] == "traceroam")
+        {
+            var arena = AllArenas().First(a => a.name == args[1]);
+            Trace = true;
+            bool hop = args.Contains("hop");
+            int ticks = args.Skip(4).Where(a => int.TryParse(a, out _)).Select(int.Parse).DefaultIfEmpty(1800).First();
+            Console.WriteLine(RoamChase(arena.stage, int.Parse(args[2]), int.Parse(args[3]), hop, ticks));
+            return 0;
+        }
+        // dotnet run -- roam [hop]: the moving-target sweep's numbers for every arena and spawn pair.
+        if (args.Length >= 1 && args[0] == "roam")
+        {
+            bool hop = args.Length > 1 && args[1] == "hop";
+            foreach (var (name, stage) in AllArenas())
+            {
+                Vector2[] spawns = stage.playerSpawnTransform;
+                for (int i = 0; i < spawns.Length; i++)
+                for (int j = 0; j < spawns.Length; j++)
+                {
+                    if (i == j || (spawns[i].x == spawns[j].x && spawns[i].y == spawns[j].y) || SealedApart(name, spawns[i], spawns[j])) continue;
+                    try { Console.WriteLine($"{name} {i}->{j} {(stage.borderType == BorderType.Loop ? "LOOP " : "")}{RoamChase(stage, i, j, hop)}"); }
+                    catch (Exception error) { Console.WriteLine($"{name} {i}->{j} THREW {error.Message}"); }
+                }
+            }
+            return 0;
+        }
+        // dotnet run -- brawl [botCount] [arena|all] [amon|sickle]: a free-for-all of bots on every arena
+        // (or one, traced), with no spell, Amon Slash on Hard, or Sickle Of The Night (long range).
+        if (args.Length >= 1 && args[0] == "brawl")
+        {
+            int count = args.Length > 1 ? int.Parse(args[1]) : 4;
+            string only = args.Length > 2 && args[2] != "all" ? args[2] : null;
+            Trace = only != null;
+            TraceBot = args.Length > 4 ? int.Parse(args[4]) : 0;
+            SpellData spell = args.Length > 3 && args[3] == "amon"
+                ? new SpellData { spellName = "Amon Slash", spellType = SpellType.Active, spellInput = 2 }
+                : args.Length > 3 && args[3] == "sickle"
+                    ? new SpellData { spellName = "Sickle Of The Night", spellType = SpellType.Active, spellInput = 4 } : null;
+            foreach (var (name, stage) in AllArenas().Where(a => only == null || a.name == only))
+            {
+                try
+                {
+                    var r = BotBrawl(stage, count, spell: spell, difficulty: spell != null && spell.spellInput == 2 ? BotDifficulty.Hard : BotDifficulty.Medium);
+                    Console.WriteLine($"{name} {(stage.borderType == BorderType.Loop ? "LOOP " : "")}worst bot: {r.wastedHops} hops in place, "
+                        + $"longest idle {r.maxIdle}, {r.targetSwitches} target switches; fewest attacks {r.attacks}; teleports {r.teleports}");
+                }
+                catch (Exception error) { Console.WriteLine($"{name} THREW {error.Message}"); }
+            }
+            return 0;
+        }
+        // dotnet run -- graphtime: how long each arena's route graph takes to build (the round-start hitch).
+        if (args.Length >= 1 && args[0] == "graphtime")
+        {
+            foreach (var (name, stage) in AllArenas())
+            {
+                Vector2 spawn = stage.playerSpawnTransform[0];
+                new BotPlatformNavigator().TryGetNextStep(stage, spawn, spawn, 12f, 48f, 10f, 0.45f, 3f, 2, out _);
+                var watch = System.Diagnostics.Stopwatch.StartNew();
+                new BotPlatformNavigator().TryGetNextStep(stage, spawn, spawn, 12f, 48f, 10f, 0.45f, 3f, 2, out _);
+                Console.WriteLine($"{watch.Elapsed.TotalMilliseconds,7:0.0} ms  {name}");
+            }
+            return 0;
+        }
+        // dotnet run -- route <arena> x y targetX targetY: the planner's first step and reachability.
+        if (args.Length >= 6 && args[0] == "route")
+        {
+            var stage = AllArenas().First(a => a.name == args[1]).stage;
+            var from = new Vector2(float.Parse(args[2]), float.Parse(args[3]));
+            var to = new Vector2(float.Parse(args[4]), float.Parse(args[5]));
+            var navigator = new BotPlatformNavigator();
+            bool found = navigator.TryGetNextStep(stage, from, to, 12f, 48f, 10f, 0.45f, 3f, 2, out var step);
+            Console.WriteLine(found ? $"{step.kind} {step.takeoff}->{step.landing} j{step.jumpsRequired} surfaces {step.fromSurface}->{step.toSurface}{(step.wrapsX ? " wrap" : "")}" : "no route");
+            Console.WriteLine($"CanReach {navigator.CanReach(stage, from, to, 12f, 48f, 10f, 0.45f, 3f, 2)}");
+            return 0;
+        }
+        if (args.Length >= 2 && args[0] == "dump")
+        {
+            var stage = AllArenas().First(a => a.name == args[1]).stage;
+            Console.WriteLine($"border {stage.borderType} min({stage.borderMin.x},{stage.borderMin.y}) max({stage.borderMax.x},{stage.borderMax.y})");
+            for (int i = 0; i < stage.solidCenter.Length; i++)
+            {
+                Vector2 c = stage.solidCenter[i], e = stage.solidExtent[i];
+                Console.WriteLine($"solid    x[{c.x - e.x}, {c.x + e.x}] y[{c.y - e.y}, {c.y + e.y}]");
+            }
+            for (int i = 0; i < stage.platformCenter.Length; i++)
+            {
+                Vector2 c = stage.platformCenter[i], e = stage.platformExtent[i];
+                Console.WriteLine($"platform x[{c.x - e.x}, {c.x + e.x}] y[{c.y - e.y}, {c.y + e.y}]");
+            }
+            for (int i = 0; i < stage.playerSpawnTransform.Length; i++)
+                Console.WriteLine($"spawn {i} {stage.playerSpawnTransform[i]}");
+            return 0;
+        }
+
         Run("one-way platform directly overhead is reachable", AscendOneWay);
         Run("actual lobby pickup platforms are reachable both ways", ActualLobbyRoutes);
         Run("NPC reaches a shop platform above it", SimulateShopAscent);
@@ -33,6 +140,9 @@ internal static class Program
         Run("a bot with only unreachable opponents stands its ground instead of jump-looping", UnreachableTargetHoldsStill);
         Run("on every arena, from every spawn pair, a bot gets into the fight without jump-looping", ArenaSweep);
         Run("a long-range kit backs off to where it can cast instead of parking too close", LongRangeKitSpacing);
+        Run("chasing a target that walks the arena, a bot never hop-loops, stalls a drop or stands idle", () => RoamSweep(false));
+        Run("chasing a target that keeps jumping in place, a bot doesn't jump along with it", () => RoamSweep(true));
+        Run("in a free-for-all of 2-4 bots, nobody swaps places with its target, paces or hop-loops", BrawlSweep);
         Console.WriteLine(failed == 0 ? "All navigation regressions passed." : $"{failed} regression(s) failed.");
         return failed == 0 ? 0 : 1;
     }
@@ -295,6 +405,7 @@ internal static class Program
         return new StageDataSO { solidCenter = ReadVectors("solidCenter"), solidExtent = ReadVectors("solidExtent"),
             platformCenter = ReadVectors("platformCenter"), platformExtent = ReadVectors("platformExtent"),
             playerSpawnTransform = ReadVectors("playerSpawnTransform"),
+            portalAs = ReadVectors("portalAs"), portalBs = ReadVectors("portalBs"),
             borderMin = ReadBorder("borderMin"), borderMax = ReadBorder("borderMax"),
             borderType = (BorderType)int.Parse(System.Text.RegularExpressions.Regex.Match(yaml, @"(?m)^  borderType: (\d+)").Groups[1].Value) };
     }
@@ -413,6 +524,7 @@ internal static class Program
         for (int tick = 0; tick < ticks; tick++)
         {
             chase.Tick();
+            if (Trace) TraceTick(tick, chase, bot, target);
             botSim.Step(chase.npcInputSnapshot);
             if (chase.npcInputSnapshot.ButtonStates[1] == ButtonState.Pressed) jumps++;
             if (chase.npcInputSnapshot.ButtonStates[0] == ButtonState.Pressed)
@@ -422,6 +534,239 @@ internal static class Program
             }
         }
         return (jumps, attacks, spellCasts);
+    }
+
+    private static void TraceTick(int tick, ChaseAI chase, PlayerController bot, PlayerController target)
+    {
+        var flags = System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance;
+        bool navigating = (bool)typeof(NpcAI).GetField("hasNavigationStep", flags).GetValue(chase);
+        var step = (BotPlatformNavigator.Step)typeof(NpcAI).GetField("navigationStep", flags).GetValue(chase);
+        Console.WriteLine($"t{tick} ({bot.position.X.ToFloat():0.0},{bot.position.Y.ToFloat():0.0}) h{bot.hSpd.ToFloat():0} v{bot.vSpd.ToFloat():0.0} "
+            + $"{bot.state} g{(bot.isGrounded ? 1 : 0)} dir{chase.npcInputSnapshot.Direction} jump{chase.npcInputSnapshot.ButtonStates[1]} "
+            + $"code{chase.npcInputSnapshot.ButtonStates[0]} target({target.position.X.ToFloat():0},{target.position.Y.ToFloat():0}{(target.isGrounded ? "" : " air")})"
+            + (navigating ? $" nav {step.kind} {step.takeoff}->{step.landing} j{step.jumpsRequired}{(step.wrapsX ? " wrap" : "")}" : ""));
+    }
+
+    internal sealed class RoamStats
+    {
+        public int attacks, hops, wastedHops, failedDrops, maxIdle, roamerArrivals, roamerGaveUp, teleports;
+        public override string ToString() =>
+            $"attacks {attacks}, hops {hops} ({wastedHops} in place), failed drops {failedDrops}, longest idle {maxIdle}, "
+            + $"roamer {roamerArrivals} arrived / {roamerGaveUp} gave up, teleports {teleports}";
+    }
+
+    // A chase against an opponent who doesn't stand still. The target walks the arena's spawn points in
+    // a shuffled order on the same navigator, pausing at each, or (hop) stands at its spawn hopping
+    // every 40 ticks. The stationary sweep above can't see what a moving opponent does to a bot: chasing
+    // someone between floors, re-planning as they go, and hopping after someone who's jumping.
+    internal static RoamStats RoamChase(StageDataSO stage, int botSpawn, int targetSpawn, bool hop = false,
+        int ticks = 1800, SpellData spell = null, BotDifficulty difficulty = BotDifficulty.Medium)
+    {
+        Vector2[] spawns = stage.playerSpawnTransform;
+        var bot = Fighter(spawns[botSpawn].x, spawns[botSpawn].y, 1);
+        var target = Fighter(spawns[targetSpawn].x, spawns[targetSpawn].y, 2);
+        bot.isGrounded = target.isGrounded = false;
+        bot.botDifficulty = difficulty;
+        if (spell != null) bot.spellList.Add(spell);
+        GameManager.Instance = new GameManager { stage = stage, players = new[] { bot, target }, playerCount = 2 };
+
+        var botSim = new MovementSimulation(bot, stage);
+        var targetSim = new MovementSimulation(target, stage);
+        var neutral = new InputSnapshot(5, new[] { ButtonState.None, ButtonState.None, ButtonState.None });
+        for (int tick = 0; tick < 120; tick++) { botSim.Step(neutral); targetSim.Step(neutral); }
+
+        var random = new Random(botSpawn * 31 + targetSpawn);
+        int[] route = Enumerable.Range(0, spawns.Length).Where(i => i != targetSpawn).OrderBy(_ => random.Next())
+            .Append(targetSpawn).ToArray();
+        int leg = 0, legTicks = 0, waitTicks = 0;
+        var stats = new RoamStats();
+        void roamerResult(bool arrived) { if (arrived) stats.roamerArrivals++; else stats.roamerGaveUp++; }
+        var roamer = new ProbeNpc { owner = target };
+        roamer.Action = () =>
+        {
+            if (hop) { roamer.Stand(); if (legTicks++ % 40 == 0) roamer.Jump(); return; }
+            Vector2 goal = spawns[route[leg % route.Length]];
+            bool arrived = target.isGrounded && MathF.Abs(target.position.X.ToFloat() - goal.x) <= 12f
+                && MathF.Abs(target.position.Y.ToFloat() - goal.y) <= 24f;
+            if (arrived && waitTicks++ < 90) { roamer.Stand(); return; }
+            if (arrived || ++legTicks > 600) { roamerResult(arrived); leg++; legTicks = 0; waitTicks = 0; }
+            roamer.Travel(spawns[route[leg % route.Length]]);
+        };
+
+        var chase = new ChaseAI { owner = bot };
+        var reachability = new BotPlatformNavigator();
+        float loopWidth = stage.borderType == BorderType.Loop ? stage.borderMax.x - stage.borderMin.x : 0f;
+        bool hopping = false;
+        Vector2 takeoff = default;
+        int dropCheck = -1, idle = 0;
+        float dropY = 0f;
+        for (int tick = 0; tick < ticks; tick++)
+        {
+            chase.Tick();
+            roamer.Tick();
+            if (Trace) TraceTick(tick, chase, bot, target);
+            InputSnapshot input = chase.npcInputSnapshot;
+            Vector2 before = new Vector2(bot.position.X.ToFloat(), bot.position.Y.ToFloat());
+            bool wasGrounded = bot.isGrounded;
+            if (input.ButtonStates[0] == ButtonState.Pressed) stats.attacks++;
+            if (wasGrounded && input.ButtonStates[1] == ButtonState.Pressed)
+            {
+                if (input.Direction == 2) { dropCheck = tick + 30; dropY = before.y; }
+                else { stats.hops++; hopping = true; takeoff = before; }
+            }
+
+            // Standing in neutral with someone reachable out of range and on the ground: doing nothing.
+            Vector2 targetPosition = new Vector2(target.position.X.ToFloat(), target.position.Y.ToFloat());
+            bool outOfRange = MathF.Abs(targetPosition.x - before.x) > 120f || MathF.Abs(targetPosition.y - before.y) > 32f;
+            bool doingNothing = wasGrounded && bot.state == PlayerState.Idle && input.Direction == 5
+                && input.ButtonStates[0] == ButtonState.None && input.ButtonStates[1] == ButtonState.None;
+            if (doingNothing && outOfRange && target.isGrounded
+                && (idle > 0 || reachability.CanReach(stage, before, targetPosition, 12f, 48f, 10f, 0.45f, 3f, 2)))
+                stats.maxIdle = Math.Max(stats.maxIdle, ++idle);
+            else idle = 0;
+
+            botSim.Step(input);
+            targetSim.Step(roamer.npcInputSnapshot);
+
+            if (hopping && bot.isGrounded && !wasGrounded)
+            {
+                hopping = false;
+                float dx = bot.position.X.ToFloat() - takeoff.x;
+                if (loopWidth > 0f && MathF.Abs(dx) > loopWidth / 2f) dx -= MathF.Sign(dx) * loopWidth;
+                if (MathF.Abs(bot.position.Y.ToFloat() - takeoff.y) < 2f && MathF.Abs(dx) < 32f) stats.wastedHops++;
+            }
+            if (tick == dropCheck && bot.isGrounded && MathF.Abs(bot.position.Y.ToFloat() - dropY) < 1f) stats.failedDrops++;
+        }
+        stats.teleports = botSim.Teleports;
+        return stats;
+    }
+
+    // A free-for-all of ChaseAI bots, one per spawn: everyone moving, everyone a target. Per bot: hops
+    // that landed back where they took off, the longest stretch standing in neutral with a reachable
+    // opponent out of range, and how often its target changed. Returned worst-bot-first per measure.
+    internal static (int wastedHops, int maxIdle, int targetSwitches, int attacks, int teleports) BotBrawl(
+        StageDataSO stage, int botCount, int ticks = 1800, SpellData spell = null, BotDifficulty difficulty = BotDifficulty.Medium)
+    {
+        Vector2[] spawns = stage.playerSpawnTransform;
+        var bots = new PlayerController[botCount];
+        var sims = new MovementSimulation[botCount];
+        var brains = new ChaseAI[botCount];
+        for (int i = 0; i < botCount; i++)
+        {
+            bots[i] = Fighter(spawns[i % spawns.Length].x + (i / spawns.Length) * 30f, spawns[i % spawns.Length].y, i + 1);
+            bots[i].isGrounded = false;
+            bots[i].botDifficulty = difficulty;
+            if (spell != null) bots[i].spellList.Add(spell);
+            sims[i] = new MovementSimulation(bots[i], stage);
+        }
+        GameManager.Instance = new GameManager { stage = stage, players = bots, playerCount = botCount };
+        var neutral = new InputSnapshot(5, new[] { ButtonState.None, ButtonState.None, ButtonState.None });
+        for (int tick = 0; tick < 120; tick++) foreach (var sim in sims) sim.Step(neutral);
+        for (int i = 0; i < botCount; i++)
+        {
+            brains[i] = new ChaseAI { owner = bots[i] };
+            bots[i].isBot = true;
+            bots[i].npcAI = brains[i];
+        }
+
+        var targetProperty = typeof(NpcAI).GetProperty("Target",
+            System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+        var reachability = new BotPlatformNavigator();
+        float loopWidth = stage.borderType == BorderType.Loop ? stage.borderMax.x - stage.borderMin.x : 0f;
+        var wasted = new int[botCount]; var maxIdle = new int[botCount]; var idle = new int[botCount];
+        var switches = new int[botCount]; var attacks = new int[botCount];
+        var lastTarget = new object[botCount]; var hopping = new bool[botCount]; var takeoff = new Vector2[botCount];
+        for (int tick = 0; tick < ticks; tick++)
+        {
+            for (int i = 0; i < botCount; i++)
+            {
+                PlayerController bot = bots[i];
+                brains[i].Tick();
+                if (Trace && i == TraceBot) TraceTick(tick, brains[i], bot, (PlayerController)targetProperty.GetValue(brains[i]) ?? bot);
+                InputSnapshot input = brains[i].npcInputSnapshot;
+                object target = targetProperty.GetValue(brains[i]);
+                if (target != lastTarget[i] && lastTarget[i] != null && target != null) switches[i]++;
+                lastTarget[i] = target;
+                Vector2 here = new Vector2(bot.position.X.ToFloat(), bot.position.Y.ToFloat());
+                if (input.ButtonStates[0] == ButtonState.Pressed) attacks[i]++;
+                if (bot.isGrounded && input.ButtonStates[1] == ButtonState.Pressed && input.Direction != 2) { hopping[i] = true; takeoff[i] = here; }
+
+                // Neutral and still, with someone reachable out of range: the nearest one counts.
+                bool doingNothing = bot.isGrounded && bot.state == PlayerState.Idle && input.Direction == 5
+                    && input.ButtonStates[0] == ButtonState.None && input.ButtonStates[1] == ButtonState.None;
+                bool someoneToChase = false, someoneInRange = false;
+                for (int j = 0; j < botCount && doingNothing; j++)
+                {
+                    if (j == i || !bots[j].isGrounded) continue;
+                    Vector2 there = new Vector2(bots[j].position.X.ToFloat(), bots[j].position.Y.ToFloat());
+                    if (MathF.Abs(there.x - here.x) <= 120f && MathF.Abs(there.y - here.y) <= 32f) someoneInRange = true;
+                    else if (reachability.CanReach(stage, here, there, 12f, 48f, 10f, 0.45f, 3f, 2)) someoneToChase = true;
+                }
+                if (doingNothing && someoneToChase && !someoneInRange) maxIdle[i] = Math.Max(maxIdle[i], ++idle[i]);
+                else idle[i] = 0;
+            }
+            for (int i = 0; i < botCount; i++)
+            {
+                bool wasGrounded = bots[i].isGrounded;
+                sims[i].Step(brains[i].npcInputSnapshot);
+                if (hopping[i] && bots[i].isGrounded && !wasGrounded)
+                {
+                    hopping[i] = false;
+                    float dx = bots[i].position.X.ToFloat() - takeoff[i].x;
+                    if (loopWidth > 0f && MathF.Abs(dx) > loopWidth / 2f) dx -= MathF.Sign(dx) * loopWidth;
+                    if (MathF.Abs(bots[i].position.Y.ToFloat() - takeoff[i].y) < 2f && MathF.Abs(dx) < 32f) wasted[i]++;
+                }
+            }
+        }
+        if (Trace)
+            for (int i = 0; i < botCount; i++)
+                Console.WriteLine($"bot {i}: spawn {spawns[i % spawns.Length]} now ({bots[i].position.X.ToFloat():0},{bots[i].position.Y.ToFloat():0}) "
+                    + $"attacks {attacks[i]}, {wasted[i]} hops in place, idle {maxIdle[i]}, switches {switches[i]}");
+        return (wasted.Max(), maxIdle.Max(), switches.Max(), attacks.Min(), sims.Sum(s => s.Teleports));
+    }
+
+    // Every arena and spawn pair against a moving target (see RoamChase). Before the movement model was a
+    // port of PlayerController, bots here dropped against solids forever, mirrored every hop, fell into
+    // portals and stood 11px short of a walk's end; none of it showed up against a target standing still.
+    private static void RoamSweep(bool hop)
+    {
+        var failures = new List<string>();
+        foreach (var (name, stage) in AllArenas())
+        {
+            Vector2[] spawns = stage.playerSpawnTransform;
+            for (int i = 0; i < spawns.Length; i++)
+            for (int j = 0; j < spawns.Length; j++)
+            {
+                if (i == j || (spawns[i].x == spawns[j].x && spawns[i].y == spawns[j].y) || SealedApart(name, spawns[i], spawns[j])) continue;
+                RoamStats stats = RoamChase(stage, i, j, hop);
+                // BigQuadrupleDuel's roamer spends most of the run trying for the half it can't reach.
+                int fewestAttacks = name == "BigQuadrupleDuel" ? 1 : 10;
+                if (stats.wastedHops > 3 || stats.failedDrops > 0 || stats.maxIdle > 60 || stats.attacks < fewestAttacks)
+                    failures.Add($"{name} {i}->{j}: {stats}");
+            }
+        }
+        Check(failures.Count == 0, $"{failures.Count} chase(s) failed: " + string.Join("; ", failures.Take(8)));
+    }
+
+    // Bots against bots, no spell and a long-range kit. Two bots each taking the route to the other
+    // swapped places all match; between two opponents one paced from one to the other; by a loop
+    // border one crossed it every twenty frames chasing whoever was nearest on screen.
+    private static void BrawlSweep()
+    {
+        var sickle = new SpellData { spellName = "Sickle Of The Night", spellType = SpellType.Active, spellInput = 4 };
+        var failures = new List<string>();
+        foreach (var (name, stage) in AllArenas())
+        {
+            if (name == "BigQuadrupleDuel") continue; // sealed halves: half the bots have nobody to fight
+            foreach (var (count, spell) in new[] { (2, (SpellData)null), (3, null), (4, null), (3, sickle), (4, sickle) })
+            {
+                var r = BotBrawl(stage, count, spell: spell);
+                if (r.attacks < 20 || r.targetSwitches > 30 || r.wastedHops > 3)
+                    failures.Add($"{name} {count} bots {(spell == null ? "no spell" : spell.spellName)}: fewest attacks {r.attacks}, "
+                        + $"{r.targetSwitches} target switches, {r.wastedHops} hops in place");
+            }
+        }
+        Check(failures.Count == 0, $"{failures.Count} brawl(s) failed: " + string.Join("; ", failures.Take(8)));
     }
 
     // BigQuadrupleDuel's centre column leaves only 32px gaps, too low for a 48px body: its left and
@@ -460,7 +805,7 @@ internal static class Program
                 }
             }
         }
-        Check(failures.Count == 0, $"{failures.Count} chase(s) failed: " + string.Join("; ", failures.Take(8)));
+        Check(failures.Count == 0, $"{failures.Count} chase(s) failed: " + string.Join("; ", failures));
         Check(starterCasts > 0, "No bot ever cast its short-range starter spell.");
     }
 

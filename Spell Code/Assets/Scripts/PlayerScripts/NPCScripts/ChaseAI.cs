@@ -69,6 +69,14 @@ public class ChaseAI : NpcAI
     // How hard a nearly-eliminated opponent pulls, per stock they're down.
     private const float StockWeight = 60f;
 
+    // How much closer, in units of distance, someone else has to be before the bot switches to them.
+    private const float TargetStickiness = 48f;
+
+    // For this long after picking a target, someone else has to be that much closer again.
+    private const int TargetCommitFrames = 120;
+    private const float TargetCommitBonus = 100f;
+    private int targetPickedTick;
+
     // Outweighs any mix of distance, bounty and stocks: an opponent there's no route to is only
     // picked when nobody reachable is left.
     private const float UnreachablePenalty = 100000f;
@@ -118,8 +126,13 @@ public class ChaseAI : NpcAI
                 continue;
             }
 
-            // Closer is always better; the mode bonus decides how much closer is worth it.
-            float score = -Mathf.Abs(candidate.position.X.ToFloat() - owner.position.X.ToFloat());
+            // Closer is always better; the mode bonus decides how much closer is worth it. Closer
+            // along the way there, not across the screen: on Loony a bot by the side border picked
+            // whoever was nearest on screen, whose route ran out through the border -- and from the
+            // far side someone else was nearest on screen, whose route ran back. It crossed the
+            // border every twenty frames for the whole match and never landed a hit.
+            bool reachable = TryRouteDistance(candidate, out float distance);
+            float score = -distance;
 
             if (gameManager.winCon == GameManager.WinCon.RAMRush)
             {
@@ -130,10 +143,25 @@ public class ChaseAI : NpcAI
                 score += (gameManager.WinConPointLimit - candidate.winConPoints) * StockWeight;
             }
 
+            // Whoever it's already after keeps a head start. Without one, a bot stood between two
+            // opponents at about the same distance turned to whichever was a pixel nearer, stepped
+            // toward them, which made the other one nearer -- pacing back and forth between the two,
+            // 60-odd switches in thirty seconds, barely attacking either. A long kit's spacing walked
+            // it 50 between two opponents at mid range, so a fresh pick also holds a while, unless
+            // someone else is close enough to hit it.
+            if (candidate == Target)
+            {
+                score += TargetStickiness;
+                if (Ticks - targetPickedTick < TargetCommitFrames && !SomeoneElseInStrikingRange())
+                {
+                    score += TargetCommitBonus;
+                }
+            }
+
             // Horizontal distance alone picked opponents on the other floor of Dual Duel, stood
             // right overhead at distance 0, over the real one on the same floor -- and chasing them
             // is a jump loop under the ceiling. Anyone reachable beats anyone who isn't.
-            if (!CanReach(candidate))
+            if (!reachable)
             {
                 score -= UnreachablePenalty;
             }
@@ -145,7 +173,30 @@ public class ChaseAI : NpcAI
             }
         }
 
+        if (best != Target)
+        {
+            targetPickedTick = Ticks;
+        }
+
         return best;
+    }
+
+    /// <summary>True when an opponent other than the target is on the bot's level within ThreatRange.</summary>
+    private bool SomeoneElseInStrikingRange()
+    {
+        GameManager gameManager = GameManager.Instance;
+        for (int i = 0; gameManager != null && i < gameManager.playerCount; i++)
+        {
+            PlayerController other = gameManager.players[i];
+            if (other != null && other != owner && other != Target && other.isAlive && other.isConnected
+                && Mathf.Abs(other.position.X.ToFloat() - owner.position.X.ToFloat()) <= ThreatRange
+                && Mathf.Abs(Footing(other).y - owner.position.Y.ToFloat()) <= ClimbThreshold)
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public override string BehaviorName => "Chase";
@@ -199,11 +250,13 @@ public class ChaseAI : NpcAI
         }
 
         // Reach the opponent's level before spacing or casting. Horizontal attack range alone
-        // used to keep a bot firing beneath an opponent instead of taking the platform route.
-        if (IsNavigating || Mathf.Abs(TargetOffsetY) > ClimbThreshold)
+        // used to keep a bot firing beneath an opponent instead of taking the platform route. Their
+        // level is the ground under them, not where a jump has them right now.
+        Vector2 targetPosition = new Vector2(owner.position.X.ToFloat() + TargetOffsetX,
+            owner.position.Y.ToFloat() + TargetFootingOffsetY);
+        if (IsNavigating || Mathf.Abs(TargetFootingOffsetY) > ClimbThreshold)
         {
-            TravelToward(new Vector2(owner.position.X.ToFloat() + TargetOffsetX,
-                owner.position.Y.ToFloat() + TargetOffsetY), 12f, ClimbThreshold);
+            RouteToTarget(targetPosition);
             return;
         }
 
@@ -228,12 +281,11 @@ public class ChaseAI : NpcAI
         // off in the other direction (Loony's out through the side border). Follow the route
         // planner instead. Plain walking stopped dead at the edge of every gap between same-height
         // ledges, hopped in place against every wall, and undid every detour one step in.
-        Vector2 targetPosition = new Vector2(owner.position.X.ToFloat() + TargetOffsetX,
-            owner.position.Y.ToFloat() + TargetOffsetY);
         if (IsGrounded && desired == toward
-            && (!IsStepSafe(toward) || WallAhead(toward) || !RouteStartsTowardTarget(targetPosition)))
+            && (!IsStepSafe(toward) || WallAhead(toward) || PortalAhead(toward)
+                || !RouteStartsTowardTarget(targetPosition)))
         {
-            TravelToward(targetPosition, 12f, ClimbThreshold);
+            RouteToTarget(targetPosition);
             return;
         }
 
@@ -242,7 +294,7 @@ public class ChaseAI : NpcAI
         // lands too close and backs off the edge again; through a loop border it lands on the far
         // side and walks straight back. Anywhere it can't, it's cornered: stand and fight from here.
         // Before the general ledge check below, which would otherwise swallow the retreat first.
-        if (desired == away && !CanBackOff(away))
+        if (desired == away && (!CanBackOff(away) || OpponentBehind(away)))
         {
             desired = 5;
             cornered = true;
@@ -250,7 +302,7 @@ public class ChaseAI : NpcAI
 
         // Ledge safety applies only on the ground. Airborne, the same step is how the bot gets back
         // to the stage, so refusing it there would strand anything that ever leaves the floor.
-        if (IsGrounded && desired != 5 && !IsStepSafe(desired))
+        if (IsGrounded && desired != 5 && (!IsStepSafe(desired) || PortalAhead(desired)))
         {
             desired = 5;
         }
@@ -271,6 +323,57 @@ public class ChaseAI : NpcAI
         {
             TapJump();
         }
+    }
+
+    /// <summary>
+    /// True when someone other than the target stands close behind the bot on its level, in this
+    /// direction. Backing off from one opponent straight into another made that one the nearest, so
+    /// the bot turned and backed off from them instead -- pacing between the two all match. Sandwiched
+    /// like that it's cornered, and fights where it stands.
+    /// </summary>
+    private bool OpponentBehind(int numpadDirection)
+    {
+        GameManager gameManager = GameManager.Instance;
+        if (gameManager == null || owner == null)
+        {
+            return false;
+        }
+
+        float sign = numpadDirection % 3 == 0 ? 1f : -1f;
+        for (int i = 0; i < gameManager.playerCount; i++)
+        {
+            PlayerController other = gameManager.players[i];
+            if (other == null || other == owner || other == Target || !other.isAlive || !other.isConnected)
+            {
+                continue;
+            }
+
+            float dx = (other.position.X.ToFloat() - owner.position.X.ToFloat()) * sign;
+            if (dx > 0f && dx <= ThreatRange
+                && Mathf.Abs(Footing(other).y - owner.position.Y.ToFloat()) <= ClimbThreshold)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Takes the planner's route to the target -- unless the target is another bot already on its way
+    /// here, in which case wait for it, facing where it'll come from, instead of passing it going the
+    /// other way. See YieldsToTarget.
+    /// </summary>
+    private void RouteToTarget(Vector2 targetPosition)
+    {
+        if (IsGrounded && YieldsToTarget(ClimbThreshold))
+        {
+            StopNavigation();
+            SetDirection(FacingTarget ? 5 : (TargetOffsetX > 0f ? 6 : 4));
+            return;
+        }
+
+        TravelToward(targetPosition, 12f, ClimbThreshold);
     }
 
     /// <summary>
